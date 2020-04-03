@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial.distance import mahalanobis
 
 
 class MahalanobisDistance():
@@ -36,16 +37,28 @@ class MahalanobisDistance():
         for i in range(n_vars):
             z[:,i] = (x[:,i]-mean[i])/std[i]
             
+            
+        if self.mode == 'scipy':
+            if cov is None:    
+                cov = np.cov(x, rowvar=False)         
+
+            md = np.zeros(n_samples)    
+            for i in range(len(z)):
+                x_i = x[i,:]                
+                md[i] = mahalanobis(x_i, mean, np.linalg.inv(cov))/n_vars
+    
+            
         if self.mode == 'inv':
             if cov is None:    
-                cov = np.matmul(np.transpose(z), z)/(n_vars)
-            
+                cov = self.correlation_matrix(z)           
+
             md = np.zeros(n_samples)    
             for i in range(len(z)):
                 z_i = z[i,:]
                 
-                MD = np.matmul(np.linalg.inv(cov), z_i)/n_vars
-                md[i] = np.dot(np.transpose(z_i), MD)
+                MD = np.matmul(np.linalg.inv(cov), z_i)
+                md[i] = np.dot(np.transpose(z_i), MD)/n_vars
+    
     
         if self.mode == 'GS':
             U = np.zeros_like(z)
@@ -53,22 +66,35 @@ class MahalanobisDistance():
                 if i == 0:
                     U[:,i] = z[:,i]
                 else:
-                    a = 0
-                    for k in range(1,i):
-                        a = a + U[:,k-1]*np.dot(np.transpose(z[:,k]), U[:,k-1])/np.dot(np.transpose(U[:,k-1]), U[:,k-1])
-                    U[:,i] = z[:,i] - a
+                    proyections = [U[:,k]*np.dot(z[:,i],U[:,k])/np.dot(U[:,k], U[:,k]) for k in range(i)]
+                    U[:,i] = z[:,i] - np.sum(proyections, axis=0)
            
             s = np.std(U, axis=axis)
             md = np.zeros(n_samples)    
             for i in range(len(z)):
-                a = 0
-                for k in range(n_vars):
-                    a = a + (U[i,k]**2)/(s[k]**2)
-                md[i] = a/n_vars
+                md[i] = np.mean([np.power(U[i,k]/s[k], 2) for k in range(n_vars)])
         
         return md, mean, std, cov
             
                 
+    def correlation_matrix(self, x):
+        n_samples = x.shape[0]
+        n_vars = x.shape[1]
+        
+        cov = np.zeros((n_vars, n_vars))
+        for i in range(n_vars):
+            for j in range(n_vars):
+                mean_i = np.mean(x[:,i])
+                mean_j = np.mean(x[:,j])
+                
+                sup_sum = 0; i_sum = 0; j_sum = 0
+                for k in range(n_samples):
+                    sup_sum = sup_sum + (x[k,i]-mean_i)*(x[k,j]-mean_j)
+                    i_sum = i_sum + (x[k,i]-mean_i)**2
+                    j_sum = j_sum + (x[k,j]-mean_j)**2                    
+                cov[i,j] = sup_sum/np.sqrt(i_sum*j_sum)
+        return cov
+    
     
     def mahalanobis_space(self, md):
         return None

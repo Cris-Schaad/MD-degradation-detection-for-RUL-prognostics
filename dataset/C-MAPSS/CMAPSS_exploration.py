@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 #import utilities.data_processing as dp
 import MahalanobisDistance as MD
 
-plt.close('all')
+#plt.close('all')
 
 
 def dataset_exploration(dataset_dict, dataset):
@@ -29,7 +29,7 @@ def dataset_exploration(dataset_dict, dataset):
     x_train_healthy = np.asarray([i for i in x_train_healthy])
 #    x_train_rest = np.asarray([x_scaler.transform(i) for i in x_train_rest])
     
-    m_d = MD.MahalanobisDistance(mode='inv')
+    m_d = MD.MahalanobisDistance(mode='scipy')
     m_d.fit_predict(np.concatenate(x_train_healthy))
     
     healthy_md = np.asarray([m_d.fit(i) for i in x_train])
@@ -41,12 +41,12 @@ def dataset_exploration(dataset_dict, dataset):
         plt.plot(i)
         ini_md.append(i[:10].flatten())
         end_md.append(i[-10:])
-    
+        
 
-    plt.figure()
-    plt.hist(np.concatenate(ini_md).flatten(), bins=30)
-    plt.hist(np.concatenate(end_md).flatten(), bins=900)
-#    
+#    plt.figure()
+#    plt.hist(np.concatenate(ini_md).flatten(), bins=30)
+#    plt.hist(np.concatenate(end_md).flatten(), bins=900)
+##    
 #    print(y_test.shape)
 #    #Time window sampling 
 #    x_train, y_train = dp.time_window_sampling(x_train, y_train, time_window, add_last_dim=False)
