@@ -125,3 +125,4 @@ dmypy.json
 .pyre/
 *.txt
 *.npz
+*.csv

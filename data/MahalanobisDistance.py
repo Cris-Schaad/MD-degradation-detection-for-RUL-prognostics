@@ -37,7 +37,6 @@ class MahalanobisDistance():
         for i in range(n_vars):
             z[:,i] = (x[:,i]-mean[i])/std[i]
             
-            
         if self.mode == 'scipy':
             if cov is None:    
                 cov = np.cov(x, rowvar=False)         
@@ -47,7 +46,6 @@ class MahalanobisDistance():
                 x_i = x[i,:]                
                 md[i] = mahalanobis(x_i, mean, np.linalg.inv(cov))/n_vars
     
-            
         if self.mode == 'inv':
             if cov is None:    
                 cov = self.correlation_matrix(z)           
@@ -58,7 +56,6 @@ class MahalanobisDistance():
                 
                 MD = np.matmul(np.linalg.inv(cov), z_i)
                 md[i] = np.dot(np.transpose(z_i), MD)/n_vars
-    
     
         if self.mode == 'GS':
             U = np.zeros_like(z)
