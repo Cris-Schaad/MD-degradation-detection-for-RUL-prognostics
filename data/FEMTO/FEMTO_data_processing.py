@@ -37,7 +37,7 @@ for i in range(len(data_raw)):
     feature_win_len = int(feature_win_len*sampling//1000)
     
     subsamples = aux.windows(sample, feature_win_len, feature_win_len)        
-    subsamples_features = np.asarray([aux.features(i) for i in subsamples])
+    subsamples_features = np.asarray([aux.super_features(i) for i in subsamples])
     sample_features.append(subsamples_features)
 
     #RUL
@@ -53,7 +53,6 @@ for i in range(len(sample_spectogram)):
 np.savez(os.path.join('processed_data','FEMTO_processed_samples.npz'),
          data_features = sample_features,
          data_spectograms = sample_spectogram,
-         data_y = sample_rul,
+         data_rul = sample_rul,
          time_step_per_measurement = win_len_time_step,
-         spectograms_per_measurement = 0,
          name = sample_name)

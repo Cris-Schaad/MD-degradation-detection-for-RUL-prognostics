@@ -17,7 +17,7 @@ def features(x):
 
 
 def super_features(x):
-    return np.hstack((features(x), features(np.diff(x)), features(x[1:]+x[:-1])))
+    return np.hstack((features(x), features(np.diff(x))))#, features(x[1:]+x[:-1])))
 
 
 def windows(x, time_window, time_step):

@@ -126,3 +126,5 @@ dmypy.json
 *.txt
 *.npz
 *.csv
+*.svg
+*.svg

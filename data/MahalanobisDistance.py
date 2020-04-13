@@ -11,7 +11,6 @@ class MahalanobisDistance():
 
     def fit_predict(self, x):
         md, u, s, cov = self.mahalanobis_distance(x, axis=self.axis)
-        self.ms = md
         self.var_mean = u
         self.var_std = s
         self.cov = cov
@@ -70,7 +69,7 @@ class MahalanobisDistance():
             md = np.zeros(n_samples)    
             for i in range(len(z)):
                 md[i] = np.mean([np.power(U[i,k]/s[k], 2) for k in range(n_vars)])
-        
+            
         return md, mean, std, cov
             
                 
@@ -93,5 +92,5 @@ class MahalanobisDistance():
         return cov
     
     
-    def mahalanobis_space(self, md):
-        return None
+    def mahalanobis_space(self):
+        return self.ms
