@@ -87,6 +87,7 @@ class MinMaxScaler():
         x_data_min = []
         x_data_max = []
 
+        print('Number of independent variables to scale: ', x_data.shape[self.feature_axis])
         for i in range(x_data.shape[self.feature_axis]):
             x = x_data.take(i, axis=self.feature_axis)
             x_min = np.min(x)

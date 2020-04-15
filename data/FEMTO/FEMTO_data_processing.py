@@ -26,18 +26,17 @@ for i in range(len(data_raw)):
     win_len_time_step = 2560//win_len
     spectogram_pixel_overlap = 0
 
-    subsamples = aux.windows(np.abs(sample), win_len, win_len)
     subsample_stft = stft(sample, nperseg=win_len, noverlap=spectogram_pixel_overlap, fs=sampling)
-    
     subsamples_spectograms = np.absolute(subsample_stft[2])
     sample_spectogram.append(np.transpose(subsamples_spectograms))    
     
     #Features
-    feature_win_len = 100             #miliseconds
+    feature_win_len = 10             #miliseconds
     feature_win_len = int(feature_win_len*sampling//1000)
+    feature_win_len_time_step = 2560//win_len
     
     subsamples = aux.windows(sample, feature_win_len, feature_win_len)        
-    subsamples_features = np.asarray([aux.super_features(i) for i in subsamples])
+    subsamples_features = np.asarray([aux.features(i) for i in subsamples])
     sample_features.append(subsamples_features)
 
     #RUL
@@ -49,10 +48,10 @@ sample_spectogram = np.asarray(sample_spectogram)
 for i in range(len(sample_spectogram)):
     sample_spectogram[i] = np.transpose(sample_spectogram[i])
 
-
 np.savez(os.path.join('processed_data','FEMTO_processed_samples.npz'),
          data_features = sample_features,
          data_spectograms = sample_spectogram,
          data_rul = sample_rul,
-         time_step_per_measurement = win_len_time_step,
+         spec_timestep = win_len_time_step,
+         feature_timestep = feature_win_len_time_step,
          name = sample_name)
