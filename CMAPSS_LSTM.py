@@ -7,8 +7,8 @@ from tensorflow.keras import layers
 from tensorflow.keras import callbacks
 from tensorflow.keras import optimizers
 
-import dataset_importer
-import training_functions as functions
+from utils import dataset_importer
+import utils.training_functions as functions
 
 
 model_name = 'LSTM'

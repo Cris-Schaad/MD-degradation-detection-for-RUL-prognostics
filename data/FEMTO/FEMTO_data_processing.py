@@ -1,8 +1,6 @@
 import os
-import pandas as pd
 import numpy as np
 from scipy.signal import stft
-
 
 import FEMTO_aux_functions as aux
 

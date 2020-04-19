@@ -1,28 +1,16 @@
 import os
-
 import numpy as np
 import pandas as pd
+import CMAPSS_aux_functions as fun
 
 
+data_dict = {}
 
-def rul(x, init, R_early):
-   
-    y = []
-    for n in range(x.shape[0]):
-        sample = x[n]
-        if type(init)==int:
-            rul_sample = np.asarray([i+1 for i in range(len(sample))])
-            rul_sample = np.expand_dims(rul_sample[::-1], axis=-1)  
-        else:      
-            rul_sample = np.asarray([init[n]+i for i in range(len(sample))])
-            rul_sample = rul_sample[::-1]  
-        rul_sample = np.where(rul_sample >= R_early, R_early, rul_sample)
-        y.append(rul_sample)     
-    return x, np.asarray(y)
-
-
-def load_from_txt(dataset, R_early = np.inf):
+datasets = ['FD001', 'FD002', 'FD003', 'FD004']
+for dataset in datasets: 
+    print(dataset)    
     
+    R_early = np.inf
     if dataset == 'FD001' or 'FD003':
         n_flights = 100
        
@@ -33,9 +21,9 @@ def load_from_txt(dataset, R_early = np.inf):
         n_flights = 248
 
     path = os.getcwd()
-    x_train = pd.read_csv(open(os.path.join(path,'data','train_'+dataset+'.txt'),'r', encoding='utf8'), delim_whitespace=True, header=None)
-    x_test = pd.read_csv(open(os.path.join(path,'data','test_'+dataset+'.txt'),'r', encoding='utf8'),delim_whitespace=True,header=None)    
-    y_test = np.array(pd.read_csv(open(os.path.join(path,'data','RUL_'+dataset+'.txt'),'r', encoding='utf8'), delim_whitespace=True,header=None))
+    x_train = pd.read_csv(open(os.path.join(path,'raw_data','train_'+dataset+'.txt'),'r', encoding='utf8'), delim_whitespace=True, header=None)
+    x_test = pd.read_csv(open(os.path.join(path,'raw_data','test_'+dataset+'.txt'),'r', encoding='utf8'),delim_whitespace=True,header=None)    
+    y_test = np.array(pd.read_csv(open(os.path.join(path,'raw_data','RUL_'+dataset+'.txt'),'r', encoding='utf8'), delim_whitespace=True,header=None))
     
     column_names=['Unit Number','Cycles', 'Operational Setting 1', 'Operational Setting 2', 'Operational Setting 3',
                     'Sensor Measurement  1', 'Sensor Measurement  2','Sensor Measurement  3','Sensor Measurement  4',
@@ -49,8 +37,6 @@ def load_from_txt(dataset, R_early = np.inf):
     x_test.columns = column_names
     
     columns_to_drop = ['Unit Number','Cycles', 'Operational Setting 1', 'Operational Setting 2', 'Operational Setting 3',]
-#                         'Sensor Measurement  1','Sensor Measurement  5','Sensor Measurement  6','Sensor Measurement  10',
-#                         'Sensor Measurement  16','Sensor Measurement  18','Sensor Measurement  19']
     op_setting_columns = ['Cycles', 'Operational Setting 1', 'Operational Setting 2', 'Operational Setting 3']
     
     x_train_data = []
@@ -93,23 +79,14 @@ def load_from_txt(dataset, R_early = np.inf):
             x_test[i] = np.delete(x_test[i], sensors_to_delete , axis=1)            
                 
                 
-    x_train, y_train = rul(x_train, 0, R_early=R_early)
-    x_test, y_test = rul(x_test, y_test, R_early=R_early)
+    x_train, y_train = fun.rul(x_train, 0, R_early=R_early)
+    x_test, y_test = fun.rul(x_test, y_test, R_early=R_early)
 
-    dataset = {'x_train': x_train,
-               'y_train': y_train,
-               'x_test': x_test, 
-               'y_test': y_test,
-               'x_train_op_settings': x_train_op_settings,
-               'x_test_op_settings': x_test_op_settings}
-    return dataset
+    data_dict[dataset] = {'x_train': x_train,
+                          'y_train': y_train,
+                          'x_test': x_test, 
+                          'y_test': y_test,
+                          'x_train_op_settings': x_train_op_settings,
+                          'x_test_op_settings': x_test_op_settings}
 
-
-datasets = ['FD001', 'FD002', 'FD003', 'FD004']
-data_dict = {}
-
-for dataset in datasets: 
-    print(dataset)    
-    data_dict[dataset] = load_from_txt(dataset)
-
-np.savez('CMAPSS_raw.npz', **data_dict)
+np.savez(os.path.join('processed_data','CMAPSS_raw.npz'), **data_dict)

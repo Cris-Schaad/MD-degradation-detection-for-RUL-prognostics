@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.spatial.distance import mahalanobis
 
 
 class MahalanobisDistance():
@@ -72,13 +71,23 @@ class MahalanobisDistance():
                 MD = np.matmul(np.linalg.inv(cov), z_i)
                 md[i] = np.sqrt(np.dot(np.transpose(z_i), MD)/(n_vars-1))
         return md, mean, std, cov
-            
-                
+          
+    
+    def covariance_matrix(self, x):
+        n_vars = x.shape[1]
+        cov = np.zeros((n_vars, n_vars))
+        for i in range(n_vars):
+            for j in range(n_vars):
+                x_i = x[:,i] - np.mean(x[:,i])
+                x_j = x[:,j] - np.mean(x[:,j])
+                cov[i,j] = np.mean(x_i*x_j)
+        return cov
+              
     def correlation_matrix(self, x):
         n_samples = x.shape[0]
         n_vars = x.shape[1]
         
-        cov = np.zeros((n_vars, n_vars))
+        corr = np.zeros((n_vars, n_vars))
         for i in range(n_vars):
             for j in range(n_vars):
                 mean_i = np.mean(x[:,i])
@@ -89,16 +98,5 @@ class MahalanobisDistance():
                     sup_sum = sup_sum + (x[k,i]-mean_i)*(x[k,j]-mean_j)
                     i_sum = i_sum + (x[k,i]-mean_i)**2
                     j_sum = j_sum + (x[k,j]-mean_j)**2                    
-                cov[i,j] = sup_sum/np.sqrt(i_sum*j_sum)
-        return cov
-    
-
-    def covariance_matrix(self, x):
-        n_vars = x.shape[1]
-        cov = np.zeros((n_vars, n_vars))
-        for i in range(n_vars):
-            for j in range(n_vars):
-                x_i = x[:,i] - np.mean(x[:,i])
-                x_j = x[:,j] - np.mean(x[:,j])
-                cov[i,j] = np.mean(x_i*x_j)
-        return cov
+                corr[i,j] = sup_sum/np.sqrt(i_sum*j_sum)
+        return corr

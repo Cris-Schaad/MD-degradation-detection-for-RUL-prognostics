@@ -16,7 +16,7 @@ dataset_raw_npz = dict(np.load(os.path.join(data_dir,'CMAPSS_raw.npz'), allow_pi
 
 
 time_window = 20
-healthy_cycles = 25
+healthy_cycles = 10
 
     
 data_dict = {}
@@ -34,16 +34,9 @@ for i, dataset in enumerate(datasets):
     ms = m_d.fit_predict(np.concatenate(x_train_healthy))
     print('Mean MD: {:.2f}'.format(np.mean(ms)))
 
-
     x_train_md = np.asarray([m_d.fit(i) for i in x_train])
     x_test_md = np.asarray([m_d.fit(i) for i in x_test])
     
-    
-    # for i in range(len(x_train)):
-    #     x_train[i] = np.column_stack((x_train[i], x_train_md[i]))
-        
-    # for i in range(len(x_test)):
-    #     x_test[i] = np.column_stack((x_test[i], x_test_md[i]))
     
     plt.figure()
     for i in x_train_md:
@@ -83,6 +76,12 @@ for i, dataset in enumerate(datasets):
     # plt.figure()
     # plt.hist(test_ruls, 20, range=(0,200), color='r', alpha=0.5)
     # plt.hist(ignored_test_ruls, 20, range=(0,200), color='g', alpha=0.5)
+    
+    
+    for i in range(len(x_train)):
+        x_train[i] = np.column_stack((x_train[i], x_train_md[i]))
+    for i in range(len(x_test)):
+        x_test[i] = np.column_stack((x_test[i], x_test_md[i]))
     
         
     # Sampling from degradation start index

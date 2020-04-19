@@ -7,8 +7,8 @@ from tensorflow.keras import layers
 from tensorflow.keras import callbacks
 from tensorflow.keras import optimizers
 
-import dataset_importer
-import training_functions as functions
+from utils import dataset_importer
+import utils.training_functions as functions
 
 
 model_name = 'CNN'
@@ -18,7 +18,7 @@ dataset_loader = dataset_importer.FEMTO_importer(dataset_dir)
 functions.plt_close()
 
 data_names = dataset_loader.data_names
-scaler_x = functions.MinMaxScaler(feature_range=(0,1), feature_axis=1)
+scaler_x = functions.MinMaxScaler(feature_range=(0,1), feature_axis=2)
 scaler_y = functions.MinMaxScaler(feature_range=(0,1))
 
 
@@ -42,14 +42,11 @@ for sample, sample_name in enumerate(data_names):
         y_test = scaler_y.transform(y_test)
         
         model = models.Sequential()   
-        model.add(layers.Conv2D(32, (5, 5),activation='relu'))
-        # model.add(layers.LSTM(units = 64, activation = 'relu', return_sequences=False, recurrent_dropout=0.2))
+        # model.add(layers.Conv2D(32, (5, 5),activation='relu'))
+        model.add(layers.LSTM(units = 64, activation = 'relu', return_sequences=False, recurrent_dropout=0.2))
 
         model.add(layers.Flatten())
-        model.add(layers.Dense(256, activation='relu'))
-        model.add(layers.Dense(256, activation='relu'))
-        model.add(layers.Dense(256, activation='relu'))
-
+        model.add(layers.Dense(64, activation='relu'))
         model.add(layers.Dense(1, activation=None))
         
         adam = optimizers.Adam(lr=0.001)
