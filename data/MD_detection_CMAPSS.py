@@ -1,10 +1,6 @@
 import os
-from pathlib import Path
-
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import skew, kurtosis
-
 
 import MahalanobisDistance as MD
 import degradation_detection as dd
@@ -34,8 +30,10 @@ for i, dataset in enumerate(datasets):
     y_test = dataset_dict['y_test']
 
     x_train_healthy = np.asarray([i[:healthy_cycles] for i in x_train])    
-    m_d = MD.MahalanobisDistance(mode='scipy')
+    m_d = MD.MahalanobisDistance(mode='covariance')
     ms = m_d.fit_predict(np.concatenate(x_train_healthy))
+    print('Mean MD: {:.2f}'.format(np.mean(ms)))
+
 
     x_train_md = np.asarray([m_d.fit(i) for i in x_train])
     x_test_md = np.asarray([m_d.fit(i) for i in x_test])
@@ -82,9 +80,9 @@ for i, dataset in enumerate(datasets):
             ignored_test_ruls.append(np.min(sample_y))
     print('Total test samples left: {}\n'.format(len(test_ruls)))
         
-    plt.figure()
-    plt.hist(test_ruls, 20, range=(0,200), color='r', alpha=0.5)
-    plt.hist(ignored_test_ruls, 20, range=(0,200), color='g', alpha=0.5)
+    # plt.figure()
+    # plt.hist(test_ruls, 20, range=(0,200), color='r', alpha=0.5)
+    # plt.hist(ignored_test_ruls, 20, range=(0,200), color='g', alpha=0.5)
     
         
     # Sampling from degradation start index

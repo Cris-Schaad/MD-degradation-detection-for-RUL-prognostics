@@ -11,14 +11,14 @@ import dataset_importer
 import training_functions as functions
 
 
-model_name = 'CNN'
+model_name = 'ConvLSTM'
 results_dir =  os.path.join(os.getcwd(), 'training_results', 'FEMTO', model_name)
 dataset_dir = os.path.join(os.getcwd(), 'data', 'FEMTO', 'processed_data', 'FEMTO_dataset.npz')
 dataset_loader = dataset_importer.FEMTO_importer(dataset_dir)
 functions.plt_close()
 
 data_names = dataset_loader.data_names
-scaler_x = functions.MinMaxScaler(feature_range=(0,1), feature_axis=1)
+scaler_x = functions.MinMaxScaler(feature_range=(0,1), feature_axis=2)
 scaler_y = functions.MinMaxScaler(feature_range=(0,1))
 
 
@@ -42,11 +42,10 @@ for sample, sample_name in enumerate(data_names):
         y_test = scaler_y.transform(y_test)
         
         model = models.Sequential()   
-        model.add(layers.Conv2D(32, (5, 5),activation='relu'))
+        model.add(layers.ConvLSTM2D(filters=64, kernel_size=[5,5]))
         # model.add(layers.LSTM(units = 64, activation = 'relu', return_sequences=False, recurrent_dropout=0.2))
 
         model.add(layers.Flatten())
-        model.add(layers.Dense(256, activation='relu'))
         model.add(layers.Dense(256, activation='relu'))
         model.add(layers.Dense(256, activation='relu'))
 
