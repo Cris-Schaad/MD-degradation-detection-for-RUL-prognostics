@@ -42,11 +42,10 @@ for sample, sample_name in enumerate(data_names):
         y_test = scaler_y.transform(y_test)
         
         model = models.Sequential()   
-        model.add(layers.ConvLSTM2D(filters=16, kernel_size=[5,5]))
+        model.add(layers.ConvLSTM2D(filters=64, kernel_size=[5,5]))
         # model.add(layers.LSTM(units = 64, activation = 'relu', return_sequences=False, recurrent_dropout=0.2))
 
         model.add(layers.Flatten())
-        model.add(layers.Dense(256, activation='relu'))
         model.add(layers.Dense(256, activation='relu'))
         model.add(layers.Dense(256, activation='relu'))
 

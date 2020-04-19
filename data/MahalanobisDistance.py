@@ -7,69 +7,70 @@ class MahalanobisDistance():
     def __init__(self, feature_axis=0, mode='inv'):
         self.mode = mode
         self.axis = feature_axis
+        self.ms = False
 
-
+    
     def fit_predict(self, x):
-        md, u, s, cov = self.mahalanobis_distance(x, axis=self.axis)
+        """ Defines a Mahalanobis space"""
+        
+        md, u, s, cov = self.mahalanobis_distance(x)
         self.var_mean = u
         self.var_std = s
         self.cov = cov
+        self.ms = True
+        
         return md
         
     
     def fit(self, x):    
-        md, _, _, _ = self.mahalanobis_distance(x, mean=self.var_mean, std=self.var_std, cov=self.cov)
-        return md
+        """ Calculates distance to the defined Mahalanobis space"""
+        
+        if self.ms:
+            md, _, _, _ = self.mahalanobis_distance(x, mean=self.var_mean, 
+                                                    std=self.var_std, 
+                                                    cov=self.cov)
+            return md
+        else:
+            print('Mahalanobis space not constructed')
+            
     
-    
-    def mahalanobis_distance(self, x, mean=None, std=None, cov=None, axis=0):
+    def mahalanobis_distance(self, x, mean=None, std=None, cov=None):
         
         n_samples = x.shape[0]
         n_vars = x.shape[1]
         
         if mean is None:
-            mean = np.mean(x, axis=axis)
+            mean = np.mean(x, axis=self.axis)
         if std is None:
-            std = np.std(x, axis=axis)
-        
-        z = np.ones_like(x)
-        for i in range(n_vars):
-            z[:,i] = (x[:,i]-mean[i])/std[i]
+            std = np.std(x, axis=self.axis)
             
-        if self.mode == 'scipy':
+            
+        if self.mode == 'covariance':
             if cov is None:    
-                cov = np.cov(x, rowvar=False)         
+                cov = self.covariance_matrix(x)  
 
             md = np.zeros(n_samples)    
-            for i in range(len(z)):
-                x_i = x[i,:]                
-                md[i] = mahalanobis(x_i, mean, np.linalg.inv(cov))/n_vars
+            for i in range(len(x)):
+                x_i = x[i,:] - mean
+
+                MD = np.matmul(np.linalg.inv(cov), x_i)
+                md[i] = np.sqrt(np.dot(np.transpose(x_i), MD)/(n_vars-1))
+                
     
-        if self.mode == 'inv':
+        if self.mode == 'correlation':
+            z = np.ones_like(x)
+            for i in range(n_vars):
+                z[:,i] = (x[:,i]-mean[i])/std[i]
+                
             if cov is None:    
-                cov = self.correlation_matrix(z)           
+                cov = self.correlation_matrix(z)       
 
             md = np.zeros(n_samples)    
             for i in range(len(z)):
                 z_i = z[i,:]
                 
                 MD = np.matmul(np.linalg.inv(cov), z_i)
-                md[i] = np.dot(np.transpose(z_i), MD)/n_vars
-    
-        if self.mode == 'GS':
-            U = np.zeros_like(z)
-            for i in range(n_vars):
-                if i == 0:
-                    U[:,i] = z[:,i]
-                else:
-                    proyections = [U[:,k]*np.dot(z[:,i],U[:,k])/np.dot(U[:,k], U[:,k]) for k in range(i)]
-                    U[:,i] = z[:,i] - np.sum(proyections, axis=0)
-           
-            s = np.std(U, axis=axis)
-            md = np.zeros(n_samples)    
-            for i in range(len(z)):
-                md[i] = np.mean([np.power(U[i,k]/s[k], 2) for k in range(n_vars)])
-            
+                md[i] = np.sqrt(np.dot(np.transpose(z_i), MD)/(n_vars-1))
         return md, mean, std, cov
             
                 
@@ -91,6 +92,13 @@ class MahalanobisDistance():
                 cov[i,j] = sup_sum/np.sqrt(i_sum*j_sum)
         return cov
     
-    
-    def mahalanobis_space(self):
-        return self.ms
+
+    def covariance_matrix(self, x):
+        n_vars = x.shape[1]
+        cov = np.zeros((n_vars, n_vars))
+        for i in range(n_vars):
+            for j in range(n_vars):
+                x_i = x[:,i] - np.mean(x[:,i])
+                x_j = x[:,j] - np.mean(x[:,j])
+                cov[i,j] = np.mean(x_i*x_j)
+        return cov
