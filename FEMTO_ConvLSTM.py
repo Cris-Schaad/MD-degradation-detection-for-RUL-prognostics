@@ -24,7 +24,7 @@ scaler_y = functions.MinMaxScaler(feature_range=(0,1))
 
 for sample, sample_name in enumerate(data_names):
     print('\n'+sample_name)
-    x_train, x_valid, y_train, y_valid = dataset_loader.get_train_set(sample, valid_size=0.1)
+    x_train, x_valid, y_train, y_valid = dataset_loader.get_train_set(sample, valid_size=0.05)
     x_test, y_test = dataset_loader.get_test_sample(sample)
     
     x_train = scaler_x.fit_transform(x_train)
@@ -41,15 +41,17 @@ for sample, sample_name in enumerate(data_names):
         y_valid = scaler_y.transform(y_valid)
         y_test = scaler_y.transform(y_test)
         
-        model = models.Sequential()   
-        model.add(layers.ConvLSTM2D(filters=64, kernel_size=[5,5]))
-        # model.add(layers.LSTM(units = 64, activation = 'relu', return_sequences=False, recurrent_dropout=0.2))
+        model = models.Sequential()          
+        # model.add(layers.ConvLSTM2D(filters=16, kernel_size=[5,5], return_sequences=True))
+        model.add(layers.ConvLSTM2D(filters=16, kernel_size=[5,5], return_sequences=False, activation='tanh'))
 
         model.add(layers.Flatten())
-        model.add(layers.Dense(256, activation='relu'))
-        model.add(layers.Dense(256, activation='relu'))
+        model.add(layers.Dropout(0.2))
+        model.add(layers.Dense(64, activation='tanh'))
+        model.add(layers.Dense(64, activation='tanh'))
+        model.add(layers.Dense(64, activation='relu'))
 
-        model.add(layers.Dense(1, activation=None))
+        model.add(layers.Dense(1, activation='linear'))
         
         adam = optimizers.Adam(lr=0.001)
         model.compile(optimizer=adam, loss='mse', metrics=['accuracy'])

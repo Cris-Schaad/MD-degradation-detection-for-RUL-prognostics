@@ -1,11 +1,7 @@
-import sys, os
-from pathlib import Path
-sys.path.append(os.path.join(Path(os.getcwd()).parent.parent))
+import os
 
 import numpy as np
 import matplotlib.pyplot as plt
-import utilities.data_processing as dp
-import utilities.training_functions as functions
 
 
 plt.close('all')
@@ -62,17 +58,19 @@ def image_zoom(array, y_factor, x_factor):
     return zoomed_array
     
  
-dataset = np.load('FEMTO_spectograms_health_dataset.npz', allow_pickle=True)
+dataset = np.load(os.path.join('processed_data','FEMTO_dataset.npz'), allow_pickle=True)
 x_data = dataset['x_data']
 
 
-scaler_x = functions.MinMaxScaler(feature_range=(0,1), feature_axis=1)
-scaler_x.fit_transform(np.concatenate(x_data))
+# scaler_x = functions.MinMaxScaler(feature_range=(0,1), feature_axis=1)
+# scaler_x.fit_transform(np.concatenate(x_data))
 
 for i in range(1):
-    sample_spec = scaler_x.transform(x_data[i])
-    super_spec = np.concatenate(sample_spec[-6*5:,:,:,0], axis=1)
-    
+    print(i)
+    sample_spec = x_data[i] #scaler_x.transform(x_data[i])
+    t,n,h,w,c = sample_spec.shape
+    super_spec = np.concatenate(sample_spec[:,-1], axis=1)[:,:,0]
+    print(super_spec.shape)
     zoomed_spec = image_zoom(super_spec, 10, 10)
     plt.figure(figsize=(10,2))
     plt.contourf(zoomed_spec, levels=100, cmap='inferno')

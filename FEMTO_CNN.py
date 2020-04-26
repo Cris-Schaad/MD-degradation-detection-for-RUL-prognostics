@@ -43,17 +43,20 @@ for sample, sample_name in enumerate(data_names):
         
         model = models.Sequential()   
         # model.add(layers.Conv2D(32, (5, 5),activation='relu'))
+        model.add(layers.LSTM(units = 64, activation = 'relu', return_sequences=True, recurrent_dropout=0.2))
+        model.add(layers.LSTM(units = 64, activation = 'relu', return_sequences=True, recurrent_dropout=0.2))
         model.add(layers.LSTM(units = 64, activation = 'relu', return_sequences=False, recurrent_dropout=0.2))
 
         model.add(layers.Flatten())
+        model.add(layers.Dense(64, activation='relu'))
         model.add(layers.Dense(64, activation='relu'))
         model.add(layers.Dense(1, activation=None))
         
         adam = optimizers.Adam(lr=0.001)
         model.compile(optimizer=adam, loss='mse', metrics=['accuracy'])
         
-        earlystop = callbacks.EarlyStopping(monitor='val_loss', patience=15, verbose=0, restore_best_weights=False, mode='min')
-        reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=10, verbose=0, mode='min')
+        earlystop = callbacks.EarlyStopping(monitor='val_loss', patience=25, verbose=0, restore_best_weights=False, mode='min')
+        reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=20, verbose=0, mode='min')
         
         start_time = time.time()
         model_history = model.fit(x_train, y_train, batch_size = 256, epochs = 250, validation_data=(x_valid, y_valid), verbose=0, callbacks=[earlystop,reduce_lr])

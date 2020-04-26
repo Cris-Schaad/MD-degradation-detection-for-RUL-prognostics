@@ -26,10 +26,10 @@ for sample in datasets:
         dataframe = pd.read_csv(os.path.join(folder, sample, file), header=None)
         data_segment = np.asarray(dataframe.iloc[:,4:])
         
-#            if np.max(np.abs(data_segment)) >= 20:
-#                if np.max(np.abs(sample_data[-1])) >= 20:
-#                    if np.max(np.abs(sample_data[-2])) >= 20:
-#                        break
+        # if np.max(np.abs(data_segment)) >= 20:
+        #     if np.max(np.abs(sample_data[-1])) >= 20:
+        #         if np.max(np.abs(sample_data[-2])) >= 20:
+        #             break
         sample_data.append(data_segment)
         
     sample_times = np.asarray([i/25600 for i in range(2560)])
@@ -40,7 +40,7 @@ for sample in datasets:
     samples_rul.append(rul)
     sample_name.append(sample)
         
-np.savez(os.path.join('raw_data', 'FEMTO_raw_samples.npz'),
+np.savez(os.path.join('processed_data', 'FEMTO_raw_samples.npz'),
          data_raw = raw_samples,
          data_rul = samples_rul,
          name = sample_name)            
