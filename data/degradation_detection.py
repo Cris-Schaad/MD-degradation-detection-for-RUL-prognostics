@@ -12,24 +12,17 @@ class Detector():
     def detect(self, x, prints=False):
         for i in range(self.n, len(x)):
             sample_k = 0
-            if x[i] >= x[i-self.n]:
-                for m in range(self.n): 
-                    if x[i - self.n + m +1] >= self.threshold:
-                        sample_k = sample_k +1
-                    
-                if sample_k >= self.k:
-                    return i
+            for m in range(self.n): 
+                if x[i - self.n + m +1] <= self.threshold:
+                    sample_k = sample_k +1
                 
-                if i == len(x)-1:
-                    if prints:
-                        print('No tresspassing detected')
-                    return i
-
-            if i == len(x)-1:
-                if prints:
-                    print('No degradation detected')
+            if sample_k <= self.k:
                 return i
             
+            if i == len(x)-1:
+                if prints:
+                    print('No tresspassing detected')
+                return i
             
     
     def sampling_from_index(self, x, y, ind, time_window):
