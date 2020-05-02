@@ -3,7 +3,7 @@ import numpy as np
 
 class MahalanobisDistance():
     
-    def __init__(self, feature_axis=0, mode='inv'):
+    def __init__(self, feature_axis=0, mode='covariance'):
         self.mode = mode
         self.axis = feature_axis
         self.ms = False
@@ -17,7 +17,6 @@ class MahalanobisDistance():
         self.var_std = s
         self.cov = cov
         self.ms = True
-        
         return md
         
     
@@ -42,8 +41,7 @@ class MahalanobisDistance():
             mean = np.mean(x, axis=self.axis)
         if std is None:
             std = np.std(x, axis=self.axis)
-            
-            
+        
         if self.mode == 'covariance':
             if cov is None:    
                 cov = self.covariance_matrix(x)  
@@ -54,7 +52,6 @@ class MahalanobisDistance():
 
                 MD = np.matmul(np.linalg.inv(cov), x_i)
                 md[i] = np.sqrt(np.dot(np.transpose(x_i), MD)/(n_vars-1))
-                
     
         if self.mode == 'correlation':
             z = np.ones_like(x)
@@ -70,15 +67,18 @@ class MahalanobisDistance():
                 
                 MD = np.matmul(np.linalg.inv(cov), z_i)
                 md[i] = np.sqrt(np.dot(np.transpose(z_i), MD)/(n_vars-1))
+        
         return md, mean, std, cov
           
     
     def covariance_matrix(self, x):
+        
         n_vars = x.shape[1]
         cov = np.zeros((n_vars, n_vars))
         for i in range(n_vars):
+            x_i = x[:,i] - np.mean(x[:,i])
+
             for j in range(n_vars):
-                x_i = x[:,i] - np.mean(x[:,i])
                 x_j = x[:,j] - np.mean(x[:,j])
                 cov[i,j] = np.mean(x_i*x_j)
         return cov

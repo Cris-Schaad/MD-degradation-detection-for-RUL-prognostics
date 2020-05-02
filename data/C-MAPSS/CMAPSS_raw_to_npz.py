@@ -67,9 +67,7 @@ for dataset in datasets:
     #Checks and deletes sensor data without variation
     sensors_to_delete = []
     for i in range(np.concatenate(x_train).shape[1]):
-        # if np.max(np.concatenate(x_train)[:,i]) == np.min(np.concatenate(x_train)[:,i]):
-        if len(np.unique(np.concatenate(x_train)[:,i])) <= 50:
-            # print(np.unique(np.concatenate(x_train)[:,i]))
+        if len(np.unique(np.concatenate(x_train)[:,i])) <= 5:
             sensors_to_delete.append(i)
 
     if len(sensors_to_delete) > 0:

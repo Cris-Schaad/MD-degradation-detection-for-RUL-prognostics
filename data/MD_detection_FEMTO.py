@@ -12,12 +12,12 @@ plt.close('all')
 data_dir = os.path.join('FEMTO', 'processed_data')
 data_set = np.load(os.path.join(data_dir, 'FEMTO_processed_samples.npz'),  allow_pickle=True)
 
-x_data = np.delete(data_set['data_features'], [9,11])
-x_spec = np.delete(data_set['data_spectograms'], [9,11])
-y_data = np.delete(data_set['data_rul'], [9,11])
+x_data = np.delete(data_set['data_features'], [9])
+x_spec = np.delete(data_set['data_spectograms'], [9])
+y_data = np.delete(data_set['data_rul'], [9])
 timestep_per_image = data_set['spec_timestep']
 feature_timestep_per_image = data_set['feature_timestep']
-dataset_names = np.delete(data_set['name'], [9,11])
+dataset_names = np.delete(data_set['name'], [9])
 
 # x_data = data_set['data_features'] 
 # x_spec = data_set['data_spectograms']
@@ -27,27 +27,27 @@ dataset_names = np.delete(data_set['name'], [9,11])
 # dataset_names = data_set['name'] 
 
 time_window = 12
+initial_healthy_cycles = -1
 
 #Degradation detector
-k = 1; n = 6; sigma = 2
-initial_healthy_cycles = -1
-start_period = 6*30
+k = 0; n = 2; sigma = 1
+moving_average_window = 12
 iterations = 20
 
-iterator = MS_iterator.iterator(k, n, sigma, initial_healthy_cycles, start_period)
-m_d, detector, threshold, deg_start_ind = iterator.iterative_calculation(x_data, n_iterations=iterations, verbose=False)
 
-x_data_md = np.asarray([m_d.fit(sample) for sample in x_data])
+iterator = MS_iterator.iterator(k, n, sigma, initial_healthy_cycles, moving_window=moving_average_window, 
+                                norm_by_start=True)
+deg_start_ind, threshold = iterator.iterative_calculation(x_data, n_iterations=iterations, verbose=False)
 
-plt.figure()
-plt.plot(np.asarray(iterator.iter_ms_dim)/len(np.concatenate(x_data)))
+x_data_md = iterator.md_calculation_op(x_data)
+
 
 # Training set
 end_md = []
 for i, sample in enumerate(x_data_md):
-    test_deg = deg_start_ind[i]
+    test_deg = deg_start_ind[i] - (moving_average_window-1)
         
-    print('Test sample RUL: {:.0f}'.format(len(sample)-1-test_deg))
+    print(dataset_names[i]+' sample RUL: {:.0f}'.format(len(sample)-1-test_deg))
     end_md.append(sample[-1])
     
     plt.figure()
@@ -68,6 +68,8 @@ x_data = dp.samples_reverse(x_data)
     
     
 # Sampling from degradation start index
+detector = iterator.get_detector()
+
 y_data = np.asarray([np.expand_dims(10*np.linspace(len(i), 1, len(i)), axis=1) for i in x_data])
 x_data, y_data = detector.sampling_from_index(x_data, y_data, deg_start_ind, time_window-1)
 

@@ -4,16 +4,15 @@ import numpy as np
 
 class Detector():
     
-    def __init__(self, k, n, threshold):
+    def __init__(self, k, n):
         self.k = k
         self.n = n
-        self.threshold = threshold
 
-    def detect(self, x, prints=False):
-        for i in range(self.n, len(x)):
+    def detect(self, x, threshold, prints=False):
+        for i in range(self.n-1, len(x)):
             sample_k = 0
             for m in range(self.n): 
-                if x[i - self.n + m +1] <= self.threshold:
+                if x[i - (self.n-1) + m] <= threshold:
                     sample_k = sample_k +1
                 
             if sample_k <= self.k:

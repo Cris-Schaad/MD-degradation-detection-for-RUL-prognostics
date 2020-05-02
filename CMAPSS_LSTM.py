@@ -47,8 +47,8 @@ for sub_dataset in dataset_npz.keys():
         adam = optimizers.Adam(lr=0.001)
         model.compile(optimizer=adam, loss='mse', metrics=['accuracy'])
         
-        earlystop = callbacks.EarlyStopping(monitor='val_loss', patience=10, verbose=0, restore_best_weights=False, mode='min')
-        reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, verbose=0, mode='min')
+        earlystop = callbacks.EarlyStopping(monitor='val_loss', patience=25, verbose=0, restore_best_weights=False, mode='min')
+        reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=20, verbose=0, mode='min')
         
         start_time = time.time()
         model_history = model.fit(x_train, y_train, batch_size = 256, epochs = 250, validation_data=(x_valid, y_valid), verbose=0, callbacks=[earlystop,reduce_lr])

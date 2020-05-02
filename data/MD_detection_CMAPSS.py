@@ -27,31 +27,32 @@ for i, dataset in enumerate(datasets):
     x_test = dataset_dict['x_test']
     y_test = dataset_dict['y_test']
     
+    
     #Degradation detector
-    k = 2; n = 6; sigma = 1
-    start_period = 10
-    iterations = 10
+    k = 0; n = 3; sigma = 1.5
+    moving_average_window = 10
+    iterations = 25
 
 
-    iterator = MS_iterator.iterator(k, n, sigma, initial_healthy_cycles, start_period)
-    m_d, detector, threshold, deg_start_ind = iterator.iterative_calculation(x_train, n_iterations=iterations, 
-                                                                             verbose=False)
-
+    iterator = MS_iterator.iterator(k, n, sigma, initial_healthy_cycles, moving_window=moving_average_window, 
+                                    norm_by_start=True)
+    deg_start_ind, threshold = iterator.iterative_calculation(x_train, n_iterations=iterations, verbose=False)
+    
     plt.figure()
     plt.plot(np.asarray(iterator.iter_ms_dim)/len(np.concatenate(x_train)))
 
-
-    x_train_md = np.asarray([m_d.fit(i)/np.mean(m_d.fit(i)[:start_period]) for i in x_train])
-    x_test_md = np.asarray([m_d.fit(i)/np.mean(m_d.fit(i)[:start_period]) for i in x_test])
+    x_train_md = iterator.md_calculation_op(x_train)
+    x_test_md = iterator.md_calculation_op(x_test)
     
     plt.figure()
+    plt.axhline(threshold, c='k')
     for i in x_train_md:
-        plt.plot(i)
+        plt.plot(i, linewidth=0.5)
         
     # Training set   
     ruls = []
     for i, sample in enumerate(x_train_md):
-        ruls.append(len(sample) - deg_start_ind[i] +1)
+        ruls.append(len(sample) + moving_average_window - deg_start_ind[i])
 
     print('Average RUL: {:.2f}'.format(np.mean(ruls)))
     print('Min RUL: {:.2f}'.format(np.min(ruls)))
@@ -59,28 +60,31 @@ for i, dataset in enumerate(datasets):
     
 
     # Test set
+    detector = iterator.get_detector()
+    
     test_deg_start_ind = []
     for i, sample in enumerate(x_test_md):
-        indx = detector.detect(sample)
+        indx = detector.detect(sample, threshold) + moving_average_window-1
         test_deg_start_ind.append(indx)
             
     test_ruls = []; ignored_test_ruls = []
     for i, sample_y in enumerate(y_test):
         if test_deg_start_ind[i] < len(sample_y)-1:
-            test_ruls.append(np.min(sample_y))
+            test_ruls.append(sample_y)
         else:
             ignored_test_ruls.append(np.min(sample_y))
-    print('Total test samples left: {}\n'.format(len(test_ruls)))
+    print('Total test samples left: {}'.format(len(test_ruls)))
+    print('Min sample len in test: {}\n'.format(np.min([len(i) for i in test_ruls])))
         
     plt.figure()
-    plt.hist(test_ruls, 20, range=(0,200), color='r', alpha=0.5)
+    plt.hist([np.min(i) for i in test_ruls], 20, range=(0,200), color='r', alpha=0.5)
     plt.hist(ignored_test_ruls, 20, range=(0,200), color='g', alpha=0.5)
     
     
     for i in range(len(x_train)):
-        x_train[i] = np.column_stack((x_train[i], x_train_md[i]))
+        x_train[i] = np.column_stack((x_train[i][moving_average_window-1:], x_train_md[i]))
     for i in range(len(x_test)):
-        x_test[i] = np.column_stack((x_test[i], x_test_md[i]))
+        x_test[i] = np.column_stack((x_test[i][moving_average_window-1:], x_test_md[i]))
     
         
     # Sampling from degradation start index
