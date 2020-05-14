@@ -5,12 +5,10 @@ def time_window_sampling(x, y, time_window, temporal_axis=0, time_step = 1, y_ti
         
     framed_x = []
     framed_y = []
-    for i, x_sample in enumerate(x):
-        y_sample = y[i]
+    for x_sample, y_sample in zip(x, y):
         
         indx = x_sample.shape[temporal_axis] - y_time_lag
-        indx_left = False
-        if indx - time_window >= 0: indx_left = True
+        indx_left = True if indx - time_window >= 0 else False
         
         if indx_left == True:
             framed_x_sample = []
@@ -41,10 +39,8 @@ def time_window_sampling(x, y, time_window, temporal_axis=0, time_step = 1, y_ti
             
             framed_x.append(framed_x_sample)
             framed_y.append(np.asarray(framed_y_sample))
-          
-    framed_x = np.asarray(framed_x)
-    framed_y = np.asarray(framed_y)
-    return framed_x, framed_y
+
+    return np.asarray(framed_x), np.asarray(framed_y)
 
 
 
@@ -93,51 +89,6 @@ def rul(x, max_rul=np.inf, normalized=False, normalizing_factor=1):
         rul_sample = np.where(rul_sample<max_rul, rul_sample, max_rul)
         y.append(np.expand_dims(rul_sample, axis=-1))   
     return x, np.asarray(y)
-
- 
-    
-def health_sampling(x, y, index, time_window):
-    
-    sampled_x = []
-    sampled_y = []
-    for i in range(len(index)):
-        deg_start_index = index[i] - time_window
-        if deg_start_index < 0:
-            deg_start_index = 0
-        sampled_x.append(x[i][deg_start_index:])
-        sampled_y.append(y[i][deg_start_index:])
-    return np.asarray(sampled_x), np.asarray(sampled_y)
-
-
-def health_prediction_sampling_from_truth(x, y, h_true, time_window, only_remove_samples_wihtout_deg=False):
-
-    sampled_x = []
-    sampled_y = []
-    if x.ndim == 1:
-        for i in range(len(h_true)):
-            no_deg_index = np.argwhere(h_true[i]==1)            
-            if only_remove_samples_wihtout_deg:
-                if np.max(no_deg_index) < (len(h_true[i])-2):
-                    sampled_x.append(x[i])
-                    sampled_y.append(y[i])                    
-            else:
-                if np.max(no_deg_index) < (len(h_true[i])-2):
-                    deg_start_index = np.max(no_deg_index) - time_window
-                    if deg_start_index <= 0:
-                        deg_start_index = 0
-                    sampled_x.append(x[i][deg_start_index:])
-                    sampled_y.append(y[i][deg_start_index:])
-            
-                
-    if x.ndim == 2:
-        no_deg_index = np.argwhere(h_true==1)
-        if np.max(no_deg_index) < (len(h_true)-2):
-            deg_start_index = np.max(no_deg_index) - time_window
-            if deg_start_index <= 0:
-                deg_start_index = 0
-            sampled_x = x[deg_start_index:]
-            sampled_y = y[deg_start_index:]     
-    return np.asarray(sampled_x), np.asarray(sampled_y)
 
 
 

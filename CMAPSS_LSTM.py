@@ -23,7 +23,7 @@ scaler_y = functions.MinMaxScaler(feature_range=(0,1))
 
 for sub_dataset in dataset_npz.keys():
     print('\n'+sub_dataset)
-    x_train, x_valid, y_train, y_valid =  dataset_loader.get_train_set(sub_dataset, valid_size=0.1)
+    x_train, x_valid, y_train, y_valid =  dataset_loader.get_train_set(sub_dataset, valid_size=0.2)
     x_test, y_test = dataset_loader.get_test_set_for_metrics(sub_dataset, rul_end_index=0)
     
     x_train = scaler_x.fit_transform(x_train)
