@@ -3,7 +3,7 @@ import time
 import numpy as np
 
 
-from models.LSTM import CMAPSSBayesianOptimizer
+from models.LSTM import LstmModel
 from utils import dataset_importer
 import utils.training_functions as functions
 
@@ -30,7 +30,7 @@ for sub_dataset in ['FD003']:
     save_path = os.path.join(results_dir, sub_dataset)
     functions.save_folder(save_path)   
     
-    model = CMAPSSBayesianOptimizer(x_train, y_train, x_valid, y_valid, x_test, y_test)       
+    model = LstmModel(x_train, y_train, x_valid, y_valid, x_test, y_test)       
     best, trials = model.optimize(iters=100)
     
     print(best)
