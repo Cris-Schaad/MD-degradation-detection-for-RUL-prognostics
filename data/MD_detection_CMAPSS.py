@@ -7,8 +7,6 @@ import data_processing as dp
 
 
 plt.close('all')
-
-
 datasets = ['FD001', 'FD002', 'FD003', 'FD004']
 
 data_dir = os.path.join('C-MAPSS', 'processed_data')
@@ -26,7 +24,7 @@ for i, dataset in enumerate(datasets):
     x_test = dataset_dict['x_test']
     y_test = dataset_dict['y_test']
         
-    #Degradation detector
+    #Degradation detector parameters
     k = 5; n = 5
     sigma = sigmas[i]
 
@@ -41,8 +39,8 @@ for i, dataset in enumerate(datasets):
     
     plt.figure()
     plt.axhline(threshold, c='k')
-    for i in x_train_md:
-        plt.plot(i, linewidth=0.5)
+    for sample in x_train_md:
+        plt.plot(sample, linewidth=0.5)
        
         
     # Training set   
@@ -77,13 +75,7 @@ for i, dataset in enumerate(datasets):
     plt.hist(ignored_test_ruls, 20, range=(0,200), color='g', alpha=0.5)
     
     
-    # for i in range(len(x_train)):
-    #     x_train[i] = np.column_stack((x_train[i], x_train_md[i]))
-    # for i in range(len(x_test)):
-    #     x_test[i] = np.column_stack((x_test[i], x_test_md[i]))
-    
-    
-    time_window = 20
+    time_window = 15
         
     # Sampling from degradation start index
     x_train, y_train = detector.sampling_from_index(x_train, y_train, deg_start_ind, time_window)

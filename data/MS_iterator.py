@@ -57,7 +57,6 @@ class iterator():
         print('\tCovergence at iter: {}'.format(len(self.iter_ms_dim)))                     
         print('\tMean MD in MS: {:.2f}'.format(np.mean(ms)))
         print('\tThreshold: {:.2f}'.format(threshold))       
-        print('\tCov determinant {:.6f}'.format(np.linalg.det(self.m_d.cov)), '\n')
         
         for ind, md_sample in enumerate(x_md):
             self.detector.detect(md_sample, threshold, verbose=True) 

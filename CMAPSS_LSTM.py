@@ -6,6 +6,10 @@ import logging
 logging.disable(logging.WARNING)
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3" 
 
+import tensorflow as tf
+tf.autograph_verbosity = 0
+
+tf.random.set_seed(1)
 
 from tensorflow.keras.backend import clear_session
 from tensorflow.keras import models
@@ -28,9 +32,10 @@ scaler_x = functions.MinMaxScaler(feature_range=(0,1), feature_axis=2)
 scaler_y = functions.MinMaxScaler(feature_range=(0,1))
 
 for sub_dataset in dataset_npz.keys():
+    
     clear_session()
     print('\n'+sub_dataset)
-    x_train, x_valid, y_train, y_valid =  dataset_loader.get_train_set(sub_dataset, valid_size=0.2)
+    x_train, x_valid, y_train, y_valid =  dataset_loader.get_train_set(sub_dataset, valid_size=0.25)
     x_test, y_test = dataset_loader.get_test_set_for_metrics(sub_dataset, rul_end_index=0)
     
     x_train = scaler_x.fit_transform(x_train)
@@ -47,22 +52,24 @@ for sub_dataset in dataset_npz.keys():
         y_test = scaler_y.transform(y_test)
         
         model = models.Sequential() 
-        model.add(layers.LSTM(units = 28, activation = 'relu', return_sequences=True, recurrent_dropout=0.15))
-        model.add(layers.LSTM(units = 28, activation = 'relu', return_sequences=False, recurrent_dropout=0.15))
+        # model.add(layers.LSTM(units = 33, activation = 'tanh', return_sequences=True, recurrent_dropout=0.08))
+        model.add(layers.LSTM(units = 32, activation = 'tanh', return_sequences=False, recurrent_dropout=0.02))
 
         model.add(layers.Flatten())
-        model.add(layers.Dense(units = 17, activation = 'tanh'))
-        model.add(layers.Dense(units = 17, activation = 'tanh'))
+        # model.add(layers.Dense(units = 32, activation = 'tanh'))
+        model.add(layers.Dense(units = 32, activation = 'tanh'))
+        model.add(layers.Dense(units = 32, activation = 'tanh'))
         model.add(layers.Dense(units = 1, activation = 'linear'))
         
         adam = optimizers.Adam(lr=0.001)
         model.compile(optimizer=adam, loss='mse', metrics=['accuracy'])
         
-        earlystop = callbacks.EarlyStopping(monitor='val_loss', patience=41, verbose=0, restore_best_weights=False, mode='min')
-        reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=39, verbose=0, mode='min')
+        earlystop = callbacks.EarlyStopping(monitor='val_loss', patience=10, verbose=0, restore_best_weights=False, mode='min')
+        # reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=39, verbose=0, mode='min')
         
         start_time = time.time()
-        model_history = model.fit(x_train, y_train, batch_size = 256, epochs = 250, validation_data=(x_valid, y_valid), verbose=0, callbacks=[earlystop,reduce_lr])
+        model_history = model.fit(x_train, y_train, batch_size = 256, epochs = 250, 
+                                  validation_data=(x_valid, y_valid), verbose=0, callbacks=[earlystop])
         print('Time to train {:.2f}'.format(time.time()-start_time))       
 
         y_pred = model.predict(x_test)
