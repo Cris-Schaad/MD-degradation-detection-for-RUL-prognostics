@@ -43,8 +43,6 @@ for sample, sample_name in enumerate(data_names):
         
         model = models.Sequential()   
         # model.add(layers.Conv2D(32, (5, 5),activation='relu'))
-        model.add(layers.LSTM(units = 64, activation = 'relu', return_sequences=True, recurrent_dropout=0.2))
-        model.add(layers.LSTM(units = 64, activation = 'relu', return_sequences=True, recurrent_dropout=0.2))
         model.add(layers.LSTM(units = 64, activation = 'relu', return_sequences=False, recurrent_dropout=0.2))
 
         model.add(layers.Flatten())

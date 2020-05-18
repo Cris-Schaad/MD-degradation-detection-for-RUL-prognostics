@@ -24,7 +24,7 @@ for sample in datasets:
     sample_data = []    
     for file in vib_files:
         dataframe = pd.read_csv(os.path.join(folder, sample, file), header=None)
-        data_segment = np.asarray(dataframe.iloc[:,4:])
+        data_segment = np.asarray(dataframe.iloc[:,4])
         
         # if np.max(np.abs(data_segment)) >= 20:
         #     if np.max(np.abs(sample_data[-1])) >= 20:

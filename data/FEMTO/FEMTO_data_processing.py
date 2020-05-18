@@ -17,31 +17,24 @@ for i in range(len(data_raw)):
     sample = data_raw[i]
     print(sample_name[i])       
 
-    x_vib = sample[:,0]
-    y_vib = sample[:,1]
-        
     #Spectograms
     sampling = 25600        #hertz            
     win_len = 5            #miliseconds
     win_len = int(win_len*sampling//1000)
     win_len_time_step = 2560//win_len
 
-    subsample_stft = stft(x_vib, nperseg=win_len, noverlap=0, fs=sampling)
+    subsample_stft = stft(sample, nperseg=win_len, noverlap=0, fs=sampling)
     subsamples_spectograms = np.absolute(subsample_stft[2])
     sample_spectogram.append(np.transpose(subsamples_spectograms))    
     
     #Features
-    feature_win_len = 100             #miliseconds
+    feature_win_len = 50             #miliseconds
     feature_win_len = int(feature_win_len*sampling//1000)
-    feature_win_len_time_step = 2560//win_len
+    feature_win_len_time_step = 2560//feature_win_len
     
-    x_vib_subsamples = aux.windows(x_vib, feature_win_len, feature_win_len)        
-    y_vib_subsamples = aux.windows(y_vib, feature_win_len, feature_win_len)        
-    # x_vib_subsamples_features = np.asarray([aux.features(i) for i in x_vib_subsamples])
-    # y_vib_subsamples_features = np.asarray([aux.features(i) for i in y_vib_subsamples])    
-    # sample_features.append(np.column_stack((x_vib_subsamples_features,y_vib_subsamples_features)))    
-    x_vib_subsamples_features = np.asarray([aux.features(np.diff(i)) for i in x_vib_subsamples])
-    sample_features.append(x_vib_subsamples_features)
+    subsamples = aux.windows(sample, feature_win_len, feature_win_len)        
+    subsamples_features = np.asarray([aux.features(i) for i in subsamples])
+    sample_features.append(subsamples_features)
 
     #RUL
     rul = subsample_stft[1]*1000

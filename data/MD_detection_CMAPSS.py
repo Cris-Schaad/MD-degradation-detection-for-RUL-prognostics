@@ -74,7 +74,6 @@ for i, dataset in enumerate(datasets):
     plt.hist([np.min(i) for i in test_ruls], 20, range=(0,200), color='r', alpha=0.5)
     plt.hist(ignored_test_ruls, 20, range=(0,200), color='g', alpha=0.5)
     
-    
     time_window = 15
         
     # Sampling from degradation start index
