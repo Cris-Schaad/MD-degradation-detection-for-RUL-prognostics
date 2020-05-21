@@ -2,11 +2,8 @@ import os
 import time
 import numpy as np
 
-from tensorflow.keras import models
-from tensorflow.keras import layers
-from tensorflow.keras import callbacks
-from tensorflow.keras import optimizers
 
+from models.OptimizableModel import OptimizableModel
 from utils import dataset_importer
 import utils.training_functions as functions
 
@@ -21,6 +18,9 @@ data_names = dataset_loader.data_names
 scaler_x = functions.MinMaxScaler(feature_range=(0,1), feature_axis=2)
 scaler_y = functions.MinMaxScaler(feature_range=(0,1))
 
+params = {'hidden_layers': 2, 'layers_activation': 'relu', 'layers_neurons': 212.0, 'lstm_activation': 'relu', 
+          'lstm_filter_shape': (5, 5), 'lstm_filters': 20.0, 'lstm_layers': 2}
+
 
 for sample, sample_name in enumerate(data_names):
     print('\n'+sample_name)
@@ -29,36 +29,22 @@ for sample, sample_name in enumerate(data_names):
     
     x_train = scaler_x.fit_transform(x_train)
     x_valid = scaler_x.transform(x_valid)
-    x_test = scaler_x.transform(x_test)  
+    x_test = scaler_x.transform(x_test)
+        
+    y_train = scaler_y.fit_transform(y_train)
+    y_valid = scaler_y.transform(y_valid)
+    y_test = scaler_y.transform(y_test)
             
     iters = 1
     save_path = os.path.join(results_dir, sample_name)
     functions.save_folder(save_path)   
-        
+    
+    Model = OptimizableModel(x_train, y_train, x_valid, y_valid, x_test, y_test,
+                             model_type=model_name)      
+         
     for i in range(iters):
-        
-        y_train = scaler_y.fit_transform(y_train)
-        y_valid = scaler_y.transform(y_valid)
-        y_test = scaler_y.transform(y_test)
-        
-        model = models.Sequential()   
-        # model.add(layers.Conv2D(32, (5, 5),activation='relu'))
-        model.add(layers.LSTM(units = 64, activation = 'relu', return_sequences=False, recurrent_dropout=0.2))
-
-        model.add(layers.Flatten())
-        model.add(layers.Dense(64, activation='relu'))
-        model.add(layers.Dense(64, activation='relu'))
-        model.add(layers.Dense(1, activation=None))
-        
-        adam = optimizers.Adam(lr=0.001)
-        model.compile(optimizer=adam, loss='mse', metrics=['accuracy'])
-        
-        earlystop = callbacks.EarlyStopping(monitor='val_loss', patience=25, verbose=0, restore_best_weights=False, mode='min')
-        reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=20, verbose=0, mode='min')
-        
-        start_time = time.time()
-        model_history = model.fit(x_train, y_train, batch_size = 256, epochs = 250, validation_data=(x_valid, y_valid), verbose=0, callbacks=[earlystop,reduce_lr])
-        print('Time to train {:.2f}'.format(time.time()-start_time))       
+        model = Model.model_train(params)
+        # print('Time to train {:.2f}'.format(time.time()-start_time))       
 
         y_pred = model.predict(x_test)
         y_train = scaler_y.inverse_transform(y_train)

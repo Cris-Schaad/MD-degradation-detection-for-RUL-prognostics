@@ -1,7 +1,11 @@
 import numpy as np  
 
-def time_window_sampling(x, y, time_window, temporal_axis=0, time_step = 1, y_time_lag = 0, 
-                         add_last_dim = False, time_step_flatten = False):
+def time_window_sampling(x, y, time_window, 
+                         temporal_axis=0, 
+                         time_step = 1, 
+                         y_time_lag = 0, 
+                         add_last_dim = False, 
+                         time_step_flatten = False):
         
     framed_x = []
     framed_y = []
@@ -39,7 +43,6 @@ def time_window_sampling(x, y, time_window, temporal_axis=0, time_step = 1, y_ti
             
             framed_x.append(framed_x_sample)
             framed_y.append(np.asarray(framed_y_sample))
-
     return np.asarray(framed_x), np.asarray(framed_y)
 
 

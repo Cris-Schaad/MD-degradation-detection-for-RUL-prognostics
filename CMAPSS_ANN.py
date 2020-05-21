@@ -2,21 +2,8 @@ import os
 import time
 import numpy as np
 
-import logging
-logging.disable(logging.WARNING)
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3" 
 
-import tensorflow as tf
-tf.autograph_verbosity = 0
-
-tf.random.set_seed(1)
-
-from tensorflow.keras.backend import clear_session
-from tensorflow.keras import models
-from tensorflow.keras import layers
-from tensorflow.keras import callbacks
-from tensorflow.keras import optimizers
-
+from models.OptimizableModel import OptimizableModel
 from utils import dataset_importer
 import utils.training_functions as functions
 
@@ -44,35 +31,19 @@ for sub_dataset in dataset_npz.keys():
 
     iters = 1
     save_path = os.path.join(results_dir, sub_dataset)
-    functions.save_folder(save_path)          
+    functions.save_folder(save_path)     
+
+    Model = OptimizableModel(x_train, y_train, x_valid, y_valid, x_test, y_test,
+                             model_type=model_name)          
     for i in range(iters):
         
         y_train = scaler_y.fit_transform(y_train)
         y_valid = scaler_y.transform(y_valid)
         y_test = scaler_y.transform(y_test)
         
-        model = models.Sequential() 
-        # model.add(layers.LSTM(units = 33, activation = 'tanh', return_sequences=True, recurrent_dropout=0.08))
-        model.add(layers.LSTM(units = 32, activation = 'tanh', return_sequences=False, recurrent_dropout=0.02))
-
-        model.add(layers.Flatten())
-        # model.add(layers.Dense(units = 32, activation = 'tanh'))
-        model.add(layers.Dense(units = 32, activation = 'tanh'))
-        model.add(layers.Dense(units = 32, activation = 'tanh'))
-        model.add(layers.Dense(units = 1, activation = 'linear'))
-        
-        adam = optimizers.Adam(lr=0.001)
-        model.compile(optimizer=adam, loss='mse', metrics=['accuracy'])
-        
-        earlystop = callbacks.EarlyStopping(monitor='val_loss', patience=10, verbose=0, restore_best_weights=False, mode='min')
-        # reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=39, verbose=0, mode='min')
-        
-        start_time = time.time()
-        model_history = model.fit(x_train, y_train, batch_size = 256, epochs = 250, 
-                                  validation_data=(x_valid, y_valid), verbose=0, callbacks=[earlystop])
-        print('Time to train {:.2f}'.format(time.time()-start_time))       
-
+        model = Model.model_train(params)
         y_pred = model.predict(x_test)
+        
         y_train = scaler_y.inverse_transform(y_train)
         y_valid = scaler_y.inverse_transform(y_valid)
         y_test = scaler_y.inverse_transform(y_test)
