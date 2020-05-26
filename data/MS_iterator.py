@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -89,11 +90,12 @@ class iterator():
          
         print('\tCovergence at iter: {}'.format(len(self.iter_ms_dim)))                     
         print('\tMean MD in MS: {:.2f}'.format(np.mean(ms)))
-        print('\tThreshold: {:.2f}\n'.format(threshold))       
+        print('\tThreshold: {:.2f}'.format(threshold))       
+        print('\tMS proportion: {:.2f}%\n'.format(100*len(ms)/len(np.concatenate(x))))       
         
         for ind, md_sample in enumerate(x_md):
             self.detector.detect(md_sample, threshold, verbose=True)    
-        return deg_start_indx, threshold
+        return None
     
     
     def md_calculation_op(self, x): 
@@ -107,7 +109,8 @@ class iterator():
     def sampling_from_MD_deg_start(self, x, y, extra_indexes=0, verbose=False):
         x_md = self.md_calculation_op(x)
         deg_start_indx = self.degradation_start_index_from_MD(x_md, verbose)
-        return self.detector.sampling_from_index(x, y, deg_start_indx, extra_indexes)
+        x_sampled, y_sampled = self.detector.sampling_from_index(x, y, deg_start_indx, extra_indexes)
+        return x_sampled, y_sampled, deg_start_indx
     
     
     def plot_RUL_after_deg(self, x, y, plot=True):
@@ -129,7 +132,7 @@ class iterator():
             plt.hist(samples_rul, 20, range=(0,300), alpha=0.5)
         
         
-    def plot_lifetime_dist(self, x, y):
+    def plot_lifetime_dist(self, x, y, savepath='', figname=''):
 
         x_md = self.md_calculation_op(x)
         deg_start_indx = self.degradation_start_index_from_MD(x_md, verbose=False)
@@ -146,8 +149,15 @@ class iterator():
         print('Minimum sample length left in dataset: {}\n'.format(np.min([len(i) for i in samples_with_degradation])))
        
         plt.figure()
-        plt.hist([np.min(i) for i in samples_with_degradation], 20, range=(0,200), color='r', alpha=0.5)
-        plt.hist([np.min(i) for i in samples_without_degradation], 20, range=(0,200), color='g', alpha=0.5)
+        plt.hist([np.min(i) for i in samples_with_degradation], 20, 
+                 range=(0,200), color='r', alpha=0.5, label='Samples reaching degradation')
+        plt.hist([np.min(i) for i in samples_without_degradation], 
+                 20, range=(0,200), color='g', alpha=0.5, label='Samples not reaching degradation')
+        plt.xlabel('Engine total lifetime')
+        plt.ylabel('Number of engines')
+        plt.legend()
+        plt.savefig(os.path.join(savepath, 'plots', figname+'_testset_RUL_dist'), bbox_inches='tight', pad_inches=0)
+
 
         
         

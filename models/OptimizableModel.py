@@ -1,5 +1,5 @@
 import numpy as np
-from hyperopt import hp, tpe, fmin, Trials
+from hyperopt import tpe, fmin, Trials
 
 import logging, os
 logging.disable(logging.WARNING)
@@ -9,10 +9,12 @@ import tensorflow as tf
 tf.autograph_verbosity = 0
 
 from tensorflow.keras.backend import clear_session
-from tensorflow.keras import models
+from tensorflow.keras import Input
+from tensorflow.keras import Model
 from tensorflow.keras import layers
 from tensorflow.keras import callbacks
 from tensorflow.keras import optimizers
+from tensorflow.keras.utils import plot_model
 
 
 class OptimizableModel():
@@ -25,16 +27,17 @@ class OptimizableModel():
         self.y_valid = y_valid
         self.x_test = x_test
         self.y_test = y_test
+        self.input_shape = list(self.x_train.shape[1:])
         tf.random.set_seed(1)
         
         if model_type.lower() == 'cnn':
             self.build_model = self.CNN_build
-        if model_type.lower() == 'lstm':
+        elif model_type.lower() == 'lstm':
             self.build_model = self.LSTM_build
-        if model_type.lower() == 'convlstm':
+        elif model_type.lower() == 'convlstm':
             self.build_model = self.ConvLSTM_build
         else:
-            raise NameError(model_type + 'not found')
+            raise NameError(model_type + ' not found')
         
         
     def rmse(self, y_true, y_pred):
@@ -42,60 +45,79 @@ class OptimizableModel():
     
     
     def CNN_build(self, params):
-        model = models.Sequential()           
-        for layer in range(params['cnn_layers']):
-            model.add(layers.Conv2D(filters=params['cnn_filters'], 
-                                    kernel_size=[params['cnn_kernel_height'], params['cnn_kernel_width']], 
+        inputs = Input(self.input_shape)      
+        x = inputs
+        for layer in range(int(params['cnn_layers'])):
+            x = layers.Conv2D(filters=int(params['cnn_filters']), 
+                                    kernel_size=[int(params['cnn_kernel_height']),int( params['cnn_kernel_width'])], 
                                     strides=(1, 1), 
                                     padding=params['cnn_padding'],  
-                                    activation=params['cnn_activation']))
-        model.add(layers.Flatten())   
-        for layer in range(params['hidden_layers']):
-            model.add(layers.Dense(units = params['layers_neurons'], activation = params['layers_activation']))
-        model.add(layers.Dense(units = 1, activation = 'linear'))
-        return model
+                                    activation=params['cnn_activation'])(x)
+        x = layers.Flatten()(x)   
+        x = layers.Dropout(params['dropout'])(x) 
+        for layer in range(int(params['hidden_layers'])):
+            x = layers.Dense(units = params['layers_neurons'], 
+                             activation = params['layers_activation'])(x)
+        y = layers.Dense(units = 1, activation = 'linear')(x)    
+        return Model(inputs=inputs, outputs=y)
     
     
     def LSTM_build(self, params):
-        model = models.Sequential()           
-        for layer in range(params['lstm_layers']):
+        inputs = Input(self.input_shape)      
+        x = inputs      
+        for layer in range(int(params['lstm_layers'])):
             returns_seq = True if layer < params['lstm_layers']-1 else False
-            model.add(layers.LSTM(units = int(params['lstm_units']), activation = params['lstm_activation'], 
-                                  return_sequences=returns_seq, recurrent_dropout=params['lstm_dropout']))
-        model.add(layers.Flatten())   
-        for layer in range(params['hidden_layers']):
-            model.add(layers.Dense(units = params['layers_neurons'], activation = params['layers_activation']))
-        model.add(layers.Dense(units = 1, activation = 'linear'))
-        return model
+            x = layers.LSTM(units = int(params['lstm_units']),
+                            activation = params['lstm_activation'],
+                            return_sequences=returns_seq)(x)
+        x = layers.Flatten()(x)   
+        x = layers.Dropout(params['dropout'])(x) 
+        for layer in range(int(params['hidden_layers'])):
+            x = layers.Dense(units = params['layers_neurons'], 
+                             activation = params['layers_activation'])(x)
+        y = layers.Dense(units = 1, activation = 'linear')(x)    
+        return Model(inputs=inputs, outputs=y)
     
     
     def ConvLSTM_build(self, params):        
-        model = models.Sequential()           
+        inputs = Input(self.input_shape)      
+        x = inputs              
         for layer in range(params['lstm_layers']):
             returns_seq = True if layer < params['lstm_layers']-1 else False
-            model.add(layers.ConvLSTM2D(filters=int(params['lstm_filters']), 
+            x = layers.ConvLSTM2D(filters=int(params['lstm_filters']), 
                                         kernel_size=params['lstm_filter_shape'],
                                         activation=params['lstm_activation'],
                                         padding='same',
-                                        return_sequences=returns_seq))
-        model.add(layers.Flatten())   
-        for layer in range(params['hidden_layers']):
-            model.add(layers.Dense(units = params['layers_neurons'], activation = params['layers_activation']))
-        model.add(layers.Dense(units = 1, activation = 'linear'))
-        return model
+                                        return_sequences=returns_seq)(x)
+        x = layers.Flatten()(x)   
+        x = layers.Dropout(params['dropout'])(x) 
+        for layer in range(int(params['hidden_layers'])):
+            x = layers.Dense(units = params['layers_neurons'], 
+                             activation = params['layers_activation'])(x)
+        y = layers.Dense(units = 1, activation = 'linear')(x)    
+        return Model(inputs=inputs, outputs=y)
     
     
-    def model_train(self, params):
-        print(params)
+    def model_train(self, params, plot_model_path=False):
+        # print(params)
         clear_session()
 
-        model = self.build_model(params)
-        adam = optimizers.Adam(lr=0.001)
+        model = self.build_model(params)        
+        adam = optimizers.Adam(lr=params['LR'])
         model.compile(optimizer=adam, loss='mse', metrics=['accuracy'])
         
-        reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5,
+        if plot_model_path:
+            plot_model(model, to_file=os.path.join(plot_model_path, 'model_cmapss.png'), 
+                       expand_nested=True,
+                       show_shapes=True,
+                       show_layer_names=False)
+    
+        
+        reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, 
+                                                patience=params['LR_patience'],
                                                 verbose=0, mode='min')
-        earlystop = callbacks.EarlyStopping(monitor='val_loss', patience=10, 
+        earlystop = callbacks.EarlyStopping(monitor='val_loss', 
+                                            patience=params['ES_patience'], 
                                             verbose=0, restore_best_weights=False, mode='min')
         
         model.fit(self.x_train, self.y_train, batch_size = 256, epochs = 250, 
