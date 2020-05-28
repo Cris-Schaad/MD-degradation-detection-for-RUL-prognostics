@@ -2,15 +2,11 @@ import os, shutil
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
-import tensorflow as tf      
  
-
-def program_start():
-    plt.close('all')
-    tf.reset_default_graph()
 
 def plt_close():
     plt.close('all')
+
     
 def save_folder(save_dir):
     if os.path.exists(save_dir):
@@ -21,10 +17,10 @@ def save_folder(save_dir):
     return None
 
 
-def prediction_plots(y_true, y_pred, plot_name, save_dir=None, xlabel=None, ylabel=None):
+def prediction_plots(y_true, y_pred, plot_name="", save_dir=None, xlabel=None, ylabel=None):
     
     Y = np.column_stack((y_true, y_pred))
-    Y = Y[Y[:,0].argsort()]
+    Y = Y[Y[:,0].argsort()[::-1]]
     err = abs(Y[:,0]-Y[:,1])
         
     gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1]) 
@@ -61,10 +57,10 @@ def loss_plot(training_loss, velidation_loss, save_dir=False, plot_name=None):
     return None
 
 
-def print_rmse(y_true, y_pred, test_name):
-        test_loss = np.sqrt(np.mean(np.power(y_true - y_pred, 2)))    
-        print(test_name+' test RMSE: ', "{:.2f}".format(test_loss))
-        return None
+def rmse_eval(y_true, y_pred, test_name):
+        rmse = np.sqrt(np.mean(np.power(y_true - y_pred, 2)))    
+        print(test_name+'RMSE: ', "{:.2f}".format(rmse))
+        return rmse
 
     
 def save_results(y_true, y_pred, save_dir, time=None, name=''):

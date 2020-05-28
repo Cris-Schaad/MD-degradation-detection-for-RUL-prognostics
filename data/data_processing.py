@@ -1,4 +1,29 @@
+import os
 import numpy as np  
+
+
+def get_CMAPSS_dataset(dataset, path):
+    
+    dataset_raw_npz = dict(np.load(os.path.join(path,'CMAPSS_raw.npz'), allow_pickle=True))
+    dataset_dict = dataset_raw_npz[dataset][()]
+    x_train = dataset_dict['x_train']
+    y_train = dataset_dict['y_train']
+    x_test = dataset_dict['x_test']
+    y_test = dataset_dict['y_test']
+    return x_train, y_train, x_test, y_test
+
+
+
+def get_CMAPSS_MD(dataset, path):
+    
+    dataset_raw_npz = dict(np.load(os.path.join(path,'CMAPSS_md_dataset.npz'), allow_pickle=True))
+    dataset_dict = dataset_raw_npz[dataset][()]
+    x_train_md = dataset_dict['x_train_md']
+    x_test_md = dataset_dict['x_test_md']
+    threshold = dataset_dict['threshold']
+    return x_train_md, x_test_md, threshold
+
+
 
 def time_window_sampling(x, y, time_window, 
                          temporal_axis=0, 
@@ -43,7 +68,23 @@ def time_window_sampling(x, y, time_window,
             
             framed_x.append(framed_x_sample)
             framed_y.append(np.asarray(framed_y_sample))
+    if len(framed_x) < len(x):
+        print('Samples ignored:', len(x)-len(framed_x))        
+    
     return np.asarray(framed_x), np.asarray(framed_y)
+
+
+
+def samples_under_deg(x, ind):
+    x_not_under_deg = []
+    x_under_deg = []
+    for i in range(len(x)):
+        if ind[i] == len(x[i])-1:
+            x_not_under_deg.append(x[i])
+        else:
+            x_under_deg.append(x[i])
+    return np.asarray(x_not_under_deg), np.asarray(x_under_deg)
+    
 
 
 

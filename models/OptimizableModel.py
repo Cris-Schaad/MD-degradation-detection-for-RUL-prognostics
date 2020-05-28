@@ -15,6 +15,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import callbacks
 from tensorflow.keras import optimizers
 from tensorflow.keras.utils import plot_model
+from tensorflow.keras.models import save_model
 
 
 class OptimizableModel():
@@ -145,3 +146,9 @@ class OptimizableModel():
                     trials = trials)
         
         return best, trials
+    
+    
+    def model_save(model, path):
+        save_model(model, path, overwrite=True, include_optimizer=True, save_format=None)
+        
+        

@@ -35,10 +35,16 @@ class Detector():
                 x_sampled.append(x_sample[ind_start:])
                 y_sampled.append(y_sample[ind_start:]) 
         return np.asarray(x_sampled), np.asarray(y_sampled)
+    
+    def dataset_detect(self, x, threshold):
+        indx = []
+        for sample in x:
+            indx.append(self.detect(sample, threshold))
+        return np.asarray(indx)
+        
 
 
-
-class iterator():
+class MSIterativeAlgorithm():
     
     def __init__(self, k, n, sigma,
                  tolerance=0.00001,
@@ -106,14 +112,8 @@ class iterator():
         return [self.detector.detect(x_sample, self.threshold, verbose=verbose) for x_sample in x]
     
     
-    def sampling_from_MD_deg_start(self, x, y, extra_indexes=0, verbose=False):
-        x_md = self.md_calculation_op(x)
-        deg_start_indx = self.degradation_start_index_from_MD(x_md, verbose)
-        x_sampled, y_sampled = self.detector.sampling_from_index(x, y, deg_start_indx, extra_indexes)
-        return x_sampled, y_sampled, deg_start_indx
     
-    
-    def plot_RUL_after_deg(self, x, y, plot=True):
+    def RUL_info(self, x, y, plot=True):
         
         x_md = self.md_calculation_op(x)
         deg_start_indx = self.degradation_start_index_from_MD(x_md, verbose=False)
