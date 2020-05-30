@@ -6,7 +6,8 @@ from sklearn.model_selection import train_test_split
 class CMAPSS_importer():
     
     def __init__(self, dataset_name):
-        dataset_dir = os.path.join(os.getcwd(), 'data', 'C-MAPSS', 'processed_data', dataset_name)
+        dataset_dir = os.path.join(os.getcwd(), 'data', 'C-MAPSS', 
+                                   'processed_data', dataset_name+'_dataset.npz')
         self.dataset = np.load(dataset_dir, allow_pickle=True)
         self.subdatasets = self.dataset.keys()
 

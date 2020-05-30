@@ -18,7 +18,7 @@ from tensorflow.keras.utils import plot_model
 from tensorflow.keras.models import save_model
 
 
-class OptimizableModel():
+class ANNModel():
     
     def __init__(self, x_train, y_train, x_valid, y_valid, x_test, y_test, model_type):
         
@@ -99,20 +99,12 @@ class OptimizableModel():
         return Model(inputs=inputs, outputs=y)
     
     
-    def model_train(self, params, plot_model_path=False):
-        # print(params)
+    def model_train(self, params):
         clear_session()
 
         model = self.build_model(params)        
         adam = optimizers.Adam(lr=params['LR'])
-        model.compile(optimizer=adam, loss='mse', metrics=['accuracy'])
-        
-        if plot_model_path:
-            plot_model(model, to_file=os.path.join(plot_model_path, 'model_cmapss.png'), 
-                       expand_nested=True,
-                       show_shapes=True,
-                       show_layer_names=False)
-    
+        model.compile(optimizer=adam, loss='mse', metrics=['accuracy'])    
         
         reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, 
                                                 patience=params['LR_patience'],
@@ -125,6 +117,13 @@ class OptimizableModel():
                   validation_data=(self.x_valid, self.y_valid), 
                   verbose=0, callbacks=[reduce_lr, earlystop])  
         return model
+    
+    
+    def model_plot(self, model, save_path, model_name='model.png'):
+        plot_model(model, to_file=os.path.join(plot_model_path, model_name), 
+                   expand_nested=True,
+                   show_shapes=True,
+                   show_layer_names=False)    
     
     
     def optimizable_model_train(self, space):
@@ -149,6 +148,6 @@ class OptimizableModel():
     
     
     def model_save(model, path):
-        save_model(model, path, overwrite=True, include_optimizer=True, save_format=None)
+        save_model(model, path, overwrite=True, include_optimizer=True, save_format='h5')
         
         

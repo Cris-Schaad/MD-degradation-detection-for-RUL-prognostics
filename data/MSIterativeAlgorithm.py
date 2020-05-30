@@ -108,15 +108,17 @@ class MSIterativeAlgorithm():
         return np.asarray([self.m_d.fit(sample) for sample in x])
     
     
-    def degradation_start_index_from_MD(self, x, verbose):
+    def detect_degradation_start_index_from_MD(self, x, verbose):
         return [self.detector.detect(x_sample, self.threshold, verbose=verbose) for x_sample in x]
     
     
+    def detect_degradation_start(self, x, verbose=False):
+        x_md = self.md_calculation_op(x)
+        return self.detect_degradation_start_index_from_MD(x_md, verbose=verbose)
+    
     
     def RUL_info(self, x, y, plot=True):
-        
-        x_md = self.md_calculation_op(x)
-        deg_start_indx = self.degradation_start_index_from_MD(x_md, verbose=False)
+        deg_start_indx = self.detect_degradation_start(x, verbose=False)
                 
         samples_rul = []
         for i in range(len(y)):
@@ -133,10 +135,8 @@ class MSIterativeAlgorithm():
         
         
     def plot_lifetime_dist(self, x, y, savepath='', figname=''):
-
-        x_md = self.md_calculation_op(x)
-        deg_start_indx = self.degradation_start_index_from_MD(x_md, verbose=False)
-                        
+        deg_start_indx = self.detect_degradation_start(x, verbose=False)
+              
         samples_with_degradation = []
         samples_without_degradation = []
         for i in range(len(y)):

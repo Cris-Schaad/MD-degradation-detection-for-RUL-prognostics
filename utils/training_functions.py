@@ -1,4 +1,5 @@
-import os, shutil
+import os
+import shutil
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
@@ -7,15 +8,26 @@ from matplotlib import gridspec
 def plt_close():
     plt.close('all')
 
-    
-def save_folder(save_dir):
-    if os.path.exists(save_dir):
-            shutil.rmtree(save_dir)
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-        
-    return None
 
+class ResultsSaver():
+    def __init__(self, parent_dir, folder_name, file_name, file_type='.csv'):
+        
+        self.save_folder_dir = os.path.join(parent_dir, folder_name)
+        if os.path.exists(self.save_folder_dir):
+                shutil.rmtree(self.save_folder_dir)
+        if not os.path.exists(self.save_folder_dir):
+            os.makedirs(self.save_folder_dir)
+            
+        self.save_file = os.path.join(self.save_folder_dir, file_name+file_type)
+        with open(self.save_file, 'w') as f:
+            f.write('Iter, RMSE')
+            f.close()
+            
+    def save_iter(self, iter_, rmse):
+        with open(self.save_file, 'w') as f:
+            f.write(str(iter_)+','+str(rmse))
+            f.close()
+        
 
 def prediction_plots(y_true, y_pred, plot_name="", save_dir=None, xlabel=None, ylabel=None):
     

@@ -1,7 +1,6 @@
 import os
 import numpy as np 
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import MinMaxScaler
 
 
 def plot_lifetime_distribution():
@@ -43,14 +42,14 @@ def plot_lifetime_distribution():
 
 
 
-def plot_md_values():
+def plot_md_datasets():
     datasets = ['FD001', 'FD002', 'FD003', 'FD004']
-    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_md_dataset.npz'), allow_pickle=True))['dataset'][()]
+    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_md_dataset.npz'), allow_pickle=True))
     
     plt.close('all')
     for dataset in datasets:
         for set_name in ['train', 'test']:
-            data = dataset_npz[dataset]
+            data = dataset_npz[dataset][()]
             x_md = data['x_'+set_name+'_md']
             threshold = data['threshold']
             x_deg_start = data[set_name+'_deg']
@@ -63,14 +62,76 @@ def plot_md_values():
                 plt.plot(range(len(no_deg_sample)), no_deg_sample, color='g', alpha=0.5, linewidth=0.5)
                 plt.plot(range(len(no_deg_sample), len(no_deg_sample)+len(deg_sample)), 
                          deg_sample, color='r', alpha=0.5, linewidth=0.5)
-                
+                        
+            plt.legend(('Healthy op.', 'Degradative op.'), loc='upper right', framealpha=1)
+            ax = plt.gca()
+            leg = ax.get_legend()
+            leg.legendHandles[0].set_color('g')
+            leg.legendHandles[0].set_alpha(1)
+            leg.legendHandles[0].set_linewidth(2)
+            leg.legendHandles[1].set_color('r')
+            leg.legendHandles[1].set_alpha(1)
+            leg.legendHandles[1].set_linewidth(2)
+            
+            plt.text(0.05, 0.85, 'Threshold MD: {:.2f}'.format(threshold), 
+                     fontsize=10, bbox=dict(facecolor='yellow', alpha=0.3), transform=plt.gca().transAxes)
+            
             plt.axhline(threshold, c='k')
             plt.xlabel('Operational cycles')
             plt.ylabel('Mahalanobis distance')
             plt.ylim((0,8))
             plt.savefig(os.path.join('plots',set_name+'_md_'+dataset), dpi=500,
                         bbox_inches='tight', pad_inches=0)
-# plot_md_values()
+# plot_md_datasets()
+
+
+def plot_md_samples():
+    datasets = ['FD001', 'FD002', 'FD003', 'FD004']
+    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_md_dataset.npz'), allow_pickle=True))
+    
+    plt.close('all')
+    for dataset in datasets:
+        data = dataset_npz[dataset][()]
+        x_md = data['x_train_md']
+        threshold = data['threshold']
+        x_deg_start = data['train_deg']
+        
+        x_lens = [len(i) for i in x_md]
+        min_len_sample_ind = np.argwhere(x_lens == np.min(x_lens))[0][0]
+        max_len_sample_ind = np.argwhere(x_lens == np.max(x_lens))[0][0]
+        
+
+        for ind, name in zip([min_len_sample_ind, max_len_sample_ind], ['min', 'max']):
+            plt.figure(figsize=(9,3))
+            deg_ind = x_deg_start[ind]
+            sample = x_md[ind]
+            
+            no_deg_sample = sample[:deg_ind]
+            deg_sample = sample[deg_ind:]
+            plt.plot(range(len(no_deg_sample)), no_deg_sample, color='g', alpha=0.5, linewidth=2)
+            plt.plot(range(len(no_deg_sample), len(no_deg_sample)+len(deg_sample)), 
+                     deg_sample, color='r', alpha=0.5, linewidth=2)
+                    
+            plt.legend(('Healthy op.', 'Degradative op.'), loc='upper right', framealpha=1)
+            ax = plt.gca()
+            leg = ax.get_legend()
+            leg.legendHandles[0].set_color('g')
+            leg.legendHandles[0].set_alpha(1)
+            leg.legendHandles[0].set_linewidth(2)
+            leg.legendHandles[1].set_color('r')
+            leg.legendHandles[1].set_alpha(1)
+            leg.legendHandles[1].set_linewidth(2)
+            
+            plt.text(0.05, 0.85, 'Threshold MD: {:.2f}'.format(threshold), 
+                     fontsize=10, bbox=dict(facecolor='yellow', alpha=0.3), transform=plt.gca().transAxes)
+            
+            plt.axhline(threshold, c='k')
+            plt.xlabel('Operational cycles')
+            plt.ylabel('Mahalanobis distance')
+            # plt.ylim((0,8))
+            plt.savefig(os.path.join('plots', name+'len_md_'+dataset), dpi=500,
+                        bbox_inches='tight', pad_inches=0)
+plot_md_samples()
 
 
 def plot_ms_iters():
@@ -123,4 +184,4 @@ def plot_traing_set_size_change():
         plt.ylabel('Number of samples')
         plt.savefig(os.path.join('plots', dataset+'_training_set_rul_dist'), dpi=500,
                     bbox_inches='tight', pad_inches=0)
-plot_traing_set_size_change()
+# plot_traing_set_size_change()

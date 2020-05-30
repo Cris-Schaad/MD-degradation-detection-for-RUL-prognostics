@@ -1,16 +1,19 @@
 import os
-from models.OptimizableModel import OptimizableModel
+from models.ANNModel import ANNModel
 from utils.dataset_importer import CMAPSS_importer
+
 from utils.training_functions import plt_close
 from utils.training_functions import MinMaxScaler
-from utils.training_functions import save_folder
+from utils.training_functions import ResultsSaver
 from utils.training_functions import prediction_plots
 from utils.training_functions import rmse_eval
 
 
+dataset_name = 'CMAPSS'
 model_name = 'CNN'
-results_dir =  os.path.join(os.getcwd(), 'training_results', 'C-MAPSS', model_name)
-dataset_loader = CMAPSS_importer('CMAPSS_dataset.npz')
+
+results_dir =  os.path.join(os.getcwd(), 'training_results', dataset_name, model_name)
+dataset_loader = CMAPSS_importer(dataset_name)
 plt_close()
 
 
@@ -40,15 +43,16 @@ for sub_dataset in dataset_loader.subdatasets:
     x_train = scaler_x.fit_transform(x_train)
     x_valid = scaler_x.transform(x_valid)
     x_test = scaler_x.transform(x_test)  
-    
-    save_path = os.path.join(results_dir, sub_dataset)
-    save_folder(save_path)    
-    Model = OptimizableModel(x_train, y_train, x_valid, y_valid, x_test, y_test, model_type=model_name)          
+      
+    saver = ResultsSaver(results_dir, sub_dataset, sub_dataset)
+    Model = ANNModel(x_train, y_train, x_valid, y_valid, x_test, y_test, model_type=model_name)          
     for i in range(10):
-        
-        model = Model.model_train(params, plot_model_path=save_path)
+        model = Model.model_train(params)
         y_pred = model.predict(x_test)
 
         prediction_plots(y_test, y_pred, plot_name=sub_dataset)
+        Model.model_save(model, os.path.join(saver.save_folder_dir,'model'+str(i)))
+        
         test_loss = rmse_eval(y_test, y_pred, sub_dataset)
-        Model.model_save(model, save_path+'{:.2f}'.format(test_loss))
+        saver.save_iter(i, test_loss)
+Model.model_plot(model, results_dir, model_name=dataset+'_model')
