@@ -20,12 +20,12 @@ class ResultsSaver():
             
         self.save_file = os.path.join(self.save_folder_dir, file_name+file_type)
         with open(self.save_file, 'w') as f:
-            f.write('Iter, RMSE')
+            f.write('Iter, RMSE\n')
             f.close()
             
     def save_iter(self, iter_, rmse):
-        with open(self.save_file, 'w') as f:
-            f.write(str(iter_)+','+str(rmse))
+        with open(self.save_file, 'a') as f:
+            f.write(str(iter_)+','+str(rmse)+'\n')
             f.close()
         
 
@@ -71,7 +71,7 @@ def loss_plot(training_loss, velidation_loss, save_dir=False, plot_name=None):
 
 def rmse_eval(y_true, y_pred, test_name):
         rmse = np.sqrt(np.mean(np.power(y_true - y_pred, 2)))    
-        print(test_name+'RMSE: ', "{:.2f}".format(rmse))
+        print(test_name+' RMSE: {:.2f}'.format(rmse))
         return rmse
 
     

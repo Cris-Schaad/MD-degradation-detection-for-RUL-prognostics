@@ -13,7 +13,7 @@ from data_processing import samples_under_deg
 
 
 plt.close('all')
-DATA_DIR = os.path.join('C-MAPSS', 'processed_data')
+DATA_DIR = os.path.join('CMAPSS', 'processed_data')
 
 
 def MD_calculation_CMAPSS():

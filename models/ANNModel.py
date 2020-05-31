@@ -120,7 +120,7 @@ class ANNModel():
     
     
     def model_plot(self, model, save_path, model_name='model.png'):
-        plot_model(model, to_file=os.path.join(plot_model_path, model_name), 
+        plot_model(model, to_file=os.path.join(save_path, model_name), 
                    expand_nested=True,
                    show_shapes=True,
                    show_layer_names=False)    
@@ -147,7 +147,7 @@ class ANNModel():
         return best, trials
     
     
-    def model_save(model, path):
+    def model_save(self, model, path):
         save_model(model, path, overwrite=True, include_optimizer=True, save_format='h5')
         
         
