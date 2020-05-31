@@ -6,7 +6,6 @@ from MahalanobisDistance import MahalanobisDistance
 
 
 class Detector():
-
     def __init__(self, k, n):
         self.k = k
         self.n = n
@@ -156,7 +155,7 @@ class MSIterativeAlgorithm():
         plt.xlabel('Engine total lifetime')
         plt.ylabel('Number of engines')
         plt.legend()
-        plt.savefig(os.path.join(savepath, 'plots', figname+'_testset_RUL_dist'), bbox_inches='tight', pad_inches=0)
+        plt.savefig(os.path.join(savepath, figname+'_testset_RUL_dist'), bbox_inches='tight', pad_inches=0)
 
 
         

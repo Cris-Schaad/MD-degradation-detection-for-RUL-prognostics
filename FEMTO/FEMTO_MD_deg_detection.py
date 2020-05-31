@@ -1,10 +1,15 @@
 import os
+import sys
+sys.path.append('..')
+
 import numpy as np
 import matplotlib.pyplot as plt
 
-import MS_iterator as MS_iterator
-from data_processing import time_window_sampling
-from data_processing import samples_reverse
+from MSIterativeAlgorithm import Detector
+from MSIterativeAlgorithm import MSIterativeAlgorithm
+
+from utils.data_processing import time_window_sampling
+from utils.data_processing import samples_reverse
 
 
 plt.close('all')

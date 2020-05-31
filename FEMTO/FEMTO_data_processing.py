@@ -1,8 +1,12 @@
 import os
+import sys 
+sys.path.append('..')
+
 import numpy as np
 from scipy.signal import stft
 
-import FEMTO_aux_functions as aux
+from utils.data_processing import windows
+from utils.data_processing import features
 
 
 data_samples = np.load(os.path.join('processed_data', 'FEMTO_raw_samples.npz'), allow_pickle=True)
@@ -32,8 +36,8 @@ for i in range(len(data_raw)):
     feature_win_len = int(feature_win_len*sampling//1000)
     feature_win_len_time_step = 2560//feature_win_len
     
-    subsamples = aux.windows(sample, feature_win_len, feature_win_len)        
-    subsamples_features = np.asarray([aux.features(i) for i in subsamples])
+    subsamples = windows(sample, feature_win_len, feature_win_len)        
+    subsamples_features = np.asarray([features(i) for i in subsamples])
     sample_features.append(subsamples_features)
 
     #RUL

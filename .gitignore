@@ -131,7 +131,9 @@ dmypy.json
 *.svg
 *.png
 
-training_results/CMAPSS
-training_results/FEMTO
+
+# Results
+C-MAPSS/training_results
+FEMTO/training_results
 
 

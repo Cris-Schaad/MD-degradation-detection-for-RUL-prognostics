@@ -1,10 +1,12 @@
 import os
 import numpy as np
 import pandas as pd
-import CMAPSS_aux_functions as fun
+from CMAPSS_utils import close_all
+from CMAPSS_utils import get_data
+from CMAPSS_utils import rul
 
 
-fun.close_all()
+close_all()
 data_dict = {}
 
 datasets = ['FD001', 'FD002', 'FD003', 'FD004']
@@ -28,13 +30,13 @@ for dataset in datasets:
     x_test.columns = op_names+sensor_names
     
     # Data drop
-    x_train, x_train_op_settings = fun.get_data(x_train, op_names[1:], op_names)
-    x_test, x_test_op_settings = fun.get_data(x_test, op_names[1:], op_names)
+    x_train, x_train_op_settings = get_data(x_train, op_names[1:], op_names)
+    x_test, x_test_op_settings = get_data(x_test, op_names[1:], op_names)
 
 
     # RUL labelling.
-    x_train, y_train = fun.rul(x_train, 0, R_early = np.inf)
-    x_test, y_test = fun.rul(x_test, y_test, R_early = np.inf)
+    x_train, y_train = rul(x_train, 0, R_early = np.inf)
+    x_test, y_test = rul(x_test, y_test, R_early = np.inf)
     
     
     #Checks and deletes sensor data without variation

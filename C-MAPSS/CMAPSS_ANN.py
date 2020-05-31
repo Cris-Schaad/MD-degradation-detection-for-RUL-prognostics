@@ -1,9 +1,11 @@
 import os
-from models.ANNModel import ANNModel
-from utils.dataset_importer import CMAPSS_importer
+import sys
+sys.path.append('..')
 
-from utils.training_functions import plt_close
-from utils.training_functions import MinMaxScaler
+from ANNModel import ANNModel
+from CMAPSS_utils import CMAPSS_importer
+from CMAPSS_utils import close_all
+from utils.data_processing import MinMaxScaler
 from utils.training_functions import ResultsSaver
 from utils.training_functions import prediction_plots
 from utils.training_functions import rmse_eval
@@ -14,7 +16,7 @@ model_name = 'CNN'
 
 results_dir =  os.path.join(os.getcwd(), 'training_results', dataset_name, model_name)
 dataset_loader = CMAPSS_importer(dataset_name)
-plt_close()
+close_all()
 
 
 params = {'cnn_layers': 4,
@@ -51,10 +53,26 @@ for sub_dataset in dataset_loader.subdatasets:
     for i in range(10):
         model = Model.model_train(params)
         y_pred = model.predict(x_test)
-
-        prediction_plots(y_test, y_pred, plot_name=sub_dataset)
-        Model.model_save(model, os.path.join(saver.save_folder_dir,'model_'+str(i+1)))
         
+        prediction_plots(y_test, y_pred, plot_name=sub_dataset)
         test_loss = rmse_eval(y_test, y_pred, sub_dataset)
         saver.save_iter(i+1, test_loss)
+        
+        # Test set results saving
+        x_test, y_test = dataset_loader.get_samples('test', sub_dataset)
+        y_pred = []
+        for x_sample in x_test:
+            y_pred.append(model.predict(scaler_x.transform(x_sample)))
+        np.savez(os.path.join(results_dir, 'model_'+str(i+1)+'_results.npz'), 
+                 y_true = y_test,
+                 y_pred = y_pred) 
+        
+        if dataset_name == 'CMAPSS_unfiltered':
+            x_test, y_test = dataset_loader.get_samples('test_ignored', sub_dataset)
+            y_pred = []
+            for x_sample in x_test:
+                y_pred.append(model.predict(scaler_x.transform(x_sample)))
+            np.savez(os.path.join(results_dir, 'model_'+str(i+1)+'ignored_samples_results.npz'), 
+                     y_true = y_test,
+                     y_pred = y_pred) 
 Model.model_plot(model, results_dir, model_name=dataset_name+'_model.png')

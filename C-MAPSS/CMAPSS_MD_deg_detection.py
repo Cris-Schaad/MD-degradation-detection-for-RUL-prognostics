@@ -1,19 +1,20 @@
 import os
+import sys
+sys.path.append('..')
 import numpy as np
-import matplotlib.pyplot as plt
 
 from MSIterativeAlgorithm import Detector
 from MSIterativeAlgorithm import MSIterativeAlgorithm
 
-from data_processing import get_CMAPSS_dataset
-from data_processing import get_CMAPSS_MD
-from data_processing import time_window_sampling
-from data_processing import samples_under_deg
+from CMAPSS_utils import close_all
+from CMAPSS_utils import load_CMAPSS_dataset
+from CMAPSS_utils import load_CMAPSS_MD_dataset
+from utils.data_processing import time_window_sampling
+from utils.data_processing import samples_under_deg
 
 
-
-plt.close('all')
-DATA_DIR = os.path.join('CMAPSS', 'processed_data')
+close_all()
+DATA_DIR = 'processed_data'
 
 
 def MD_calculation_CMAPSS():
@@ -22,7 +23,7 @@ def MD_calculation_CMAPSS():
     
     for i, dataset in enumerate(['FD001', 'FD002', 'FD003', 'FD004']): 
         print('Processing dataset: ', dataset)
-        x_train, y_train, x_test, y_test = get_CMAPSS_dataset(dataset, DATA_DIR)
+        x_train, y_train, x_test, y_test = load_CMAPSS_dataset(dataset, DATA_DIR)
             
         #Degradation detector parameters
         k = 5; n = 5
@@ -32,7 +33,7 @@ def MD_calculation_CMAPSS():
         
         iterator.RUL_info(x_train, y_train, plot=False)
         iterator.RUL_info(x_test, y_test, plot=False)
-        iterator.plot_lifetime_dist(x_test, y_test, savepath='C-MAPSS', figname=dataset)
+        iterator.plot_lifetime_dist(x_test, y_test, savepath='plots', figname=dataset)
         
         md_dict[dataset] =  {'x_train_md': iterator.md_calculation_op(x_train),
                             'x_test_md': iterator.md_calculation_op(x_test),
@@ -40,7 +41,7 @@ def MD_calculation_CMAPSS():
                             'test_deg':iterator.detect_degradation_start(x_test, False),
                             'threshold': iterator.threshold,
                             'ms_iter': np.asarray(iterator.iter_ms_dim)}
-    np.savez(os.path.join(DATA_DIR,'CMAPSS_md_dataset.npz'), **md_dict)
+    np.savez(os.path.join(DATA_DIR,'CMAPSS_MD_dataset.npz'), **md_dict)
 MD_calculation_CMAPSS()
 
 
@@ -54,11 +55,11 @@ def sample_CMAPSS_by_MD():
     
     for i, dataset in enumerate(['FD001', 'FD002', 'FD003', 'FD004']):        
         print('Processing dataset: ', dataset)
-        x_train, y_train, x_test, y_test = get_CMAPSS_dataset(dataset, DATA_DIR)
-        x_train_md, x_test_md, threshold = get_CMAPSS_MD(dataset, DATA_DIR)
+        x_train, y_train, x_test, y_test = load_CMAPSS_dataset(dataset, DATA_DIR)
+        x_train_md, x_test_md, threshold = load_CMAPSS_MD_dataset(dataset, DATA_DIR)
 
         # Degradation start index
-        time_window = 18
+        time_window = 19
         train_deg = deg_detector.dataset_detect(x_train_md, threshold)
         test_deg = deg_detector.dataset_detect(x_test_md, threshold)
          
@@ -79,7 +80,7 @@ def sample_CMAPSS_by_MD():
         
         
         #Unfiltered data
-        _, _, x_test, y_test = get_CMAPSS_dataset(dataset, DATA_DIR)
+        _, _, x_test, y_test = load_CMAPSS_dataset(dataset, DATA_DIR)
         x_test_normal, x_test_under_deg = samples_under_deg(x_test, test_deg)
         y_test_normal, y_test_under_deg = samples_under_deg(y_test, test_deg)
         
