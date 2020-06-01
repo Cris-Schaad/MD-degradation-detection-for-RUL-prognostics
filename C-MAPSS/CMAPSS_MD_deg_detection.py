@@ -42,7 +42,7 @@ def MD_calculation_CMAPSS():
                             'threshold': iterator.threshold,
                             'ms_iter': np.asarray(iterator.iter_ms_dim)}
     np.savez(os.path.join(DATA_DIR,'CMAPSS_MD_dataset.npz'), **md_dict)
-MD_calculation_CMAPSS()
+# MD_calculation_CMAPSS()
 
 
 def sample_CMAPSS_by_MD():
@@ -89,7 +89,9 @@ def sample_CMAPSS_by_MD():
         x_test_normal, y_test_normal = time_window_sampling(x_test_normal, y_test_normal, time_window, add_last_dim=True)
         x_test_under_deg, y_test_under_deg = time_window_sampling(x_test_under_deg, y_test_under_deg, time_window, add_last_dim=True)
         
-        data_unfiltered[dataset] =  {'x_test_ignored': x_test_normal,
+        data_unfiltered[dataset] =  {'x_train': x_train,
+                                     'y_train':y_train,
+                                     'x_test_ignored': x_test_normal,
                                      'y_test_ignored':y_test_normal,
                                      'x_test': x_test_under_deg,
                                      'y_test': y_test_under_deg}

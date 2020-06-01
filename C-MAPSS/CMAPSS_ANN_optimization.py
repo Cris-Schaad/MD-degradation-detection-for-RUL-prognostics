@@ -1,7 +1,7 @@
 import os
-import time
-import numpy as np
+import sys
 
+sys.path.append('..')
 from ANNModel import ANNModel
 from CMAPSS_utils import CMAPSS_importer
 from CMAPSS_utils import close_all

@@ -51,7 +51,7 @@ def load_CMAPSS_dataset(dataset, path):
 
 
 def load_CMAPSS_MD_dataset(dataset, path):
-    dataset_raw_npz = dict(np.load(os.path.join(path,'CMAPSS_md_dataset.npz'), allow_pickle=True))
+    dataset_raw_npz = dict(np.load(os.path.join(path,'CMAPSS_MD_dataset.npz'), allow_pickle=True))
     dataset_dict = dataset_raw_npz[dataset][()]
     x_train_md = dataset_dict['x_train_md']
     x_test_md = dataset_dict['x_test_md']

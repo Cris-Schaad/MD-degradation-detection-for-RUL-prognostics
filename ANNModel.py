@@ -20,7 +20,7 @@ from tensorflow.keras.models import save_model
 
 class ANNModel():
     
-    def __init__(self, x_train, y_train, x_valid, y_valid, x_test, y_test, model_type):
+    def __init__(self, x_train, y_train, x_valid, y_valid, model_type, x_test=None, y_test=None):
         
         self.x_train = x_train
         self.y_train = y_train

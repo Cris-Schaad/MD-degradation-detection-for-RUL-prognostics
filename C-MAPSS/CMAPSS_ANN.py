@@ -1,7 +1,8 @@
 import os
 import sys
-sys.path.append('..')
+import numpy as np
 
+sys.path.append('..')
 from ANNModel import ANNModel
 from CMAPSS_utils import CMAPSS_importer
 from CMAPSS_utils import close_all
@@ -48,7 +49,7 @@ for sub_dataset in dataset_loader.subdatasets:
     x_test = scaler_x.transform(x_test)  
       
     saver = ResultsSaver(results_dir, sub_dataset, sub_dataset)
-    Model = ANNModel(x_train, y_train, x_valid, y_valid, x_test, y_test, model_type=model_name)          
+    Model = ANNModel(x_train, y_train, x_valid, y_valid, model_type=model_name)          
     
     for i in range(10):
         model = Model.model_train(params)
@@ -59,18 +60,18 @@ for sub_dataset in dataset_loader.subdatasets:
         saver.save_iter(i+1, test_loss)
         
         # Test set results saving
-        x_test, y_test = dataset_loader.get_samples('test', sub_dataset)
+        x_test_samples, y_test_samples = dataset_loader.get_samples(sub_dataset, 'test')
         y_pred = []
-        for x_sample in x_test:
+        for x_sample in x_test_samples:
             y_pred.append(model.predict(scaler_x.transform(x_sample)))
         np.savez(os.path.join(results_dir, 'model_'+str(i+1)+'_results.npz'), 
-                 y_true = y_test,
+                 y_true = y_test_samples,
                  y_pred = y_pred) 
         
         if dataset_name == 'CMAPSS_unfiltered':
-            x_test, y_test = dataset_loader.get_samples('test_ignored', sub_dataset)
+            x_test_samples, y_test_samples = dataset_loader.get_samples(sub_dataset, 'test_ignored')
             y_pred = []
-            for x_sample in x_test:
+            for x_sample in x_test_samples:
                 y_pred.append(model.predict(scaler_x.transform(x_sample)))
             np.savez(os.path.join(results_dir, 'model_'+str(i+1)+'ignored_samples_results.npz'), 
                      y_true = y_test,
