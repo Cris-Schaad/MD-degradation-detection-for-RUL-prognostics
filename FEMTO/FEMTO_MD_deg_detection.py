@@ -4,9 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 sys.path.append('..')
-from MSIterativeAlgorithm import Detector
 from MSIterativeAlgorithm import MSIterativeAlgorithm
-
 from utils.data_processing import time_window_sampling
 from utils.data_processing import samples_reverse
 

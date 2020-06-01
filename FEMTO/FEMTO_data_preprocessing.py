@@ -39,7 +39,7 @@ def raw_to_npz():
     np.savez(os.path.join('processed_data', 'FEMTO_raw_samples.npz'),
              data_raw = raw_samples,
              name = sample_name)            
-# raw_to_npz()
+raw_to_npz()
 
 
 def data_to_spectograms():
@@ -65,7 +65,7 @@ def data_to_spectograms():
         sample_spectogram.append(np.transpose(subsamples_spectograms))   
         
         #Features
-        feature_win_len = 25             #miliseconds
+        feature_win_len = 50             #miliseconds
         feature_win_len = int(feature_win_len*sampling//1000)
         feature_win_len_time_step = 2560//feature_win_len
 

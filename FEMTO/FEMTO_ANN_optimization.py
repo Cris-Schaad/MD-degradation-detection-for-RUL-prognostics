@@ -1,30 +1,34 @@
-import os
+import sys
 
-from models.OptimizableModel import OptimizableModel
-from utils import dataset_importer
-import utils.training_functions as functions
+sys.path.append('..')
+from ANNModel import ANNModel
+from FEMTO_utils import FEMTO_importer
+from utils.data_processing import MinMaxScaler
+from utils.training_functions import close_all
 
 
 model_name = 'ConvLSTM'
-results_dir =  os.path.join(os.getcwd(), 'training_results', 'FEMTO', model_name)
-dataset_dir = os.path.join(os.getcwd(), 'data', 'FEMTO', 'processed_data', 'FEMTO_dataset.npz')
-dataset_loader = dataset_importer.FEMTO_importer(dataset_dir)
-functions.plt_close()
+dataset_loader = FEMTO_importer()
+close_all()
+
 
 data_names = dataset_loader.data_names
-scaler_x = functions.MinMaxScaler(feature_range=(0,1), feature_axis=2)
-scaler_y = functions.MinMaxScaler(feature_range=(0,1))
-
-
+scaler_x = MinMaxScaler(feature_range=(0,1), feature_axis=2)
 from hyperopt import hp
-search_space = {'lstm_layers': hp.choice('lstm_layers', [1,2, 3]),
-                'lstm_filters': hp.quniform('lstm_filters', 8, 16, 1), 
-                'lstm_filter_shape': hp.choice('lstm_filter_shape', [[2,2], [3,3], [4,4], [5,5], [6,6]]),
-                'lstm_activation': hp.choice('lstm_activation', ['tanh', 'relu']),
+search_space =  {'convlstm_layers': 1,
+                'convlstm_filters': 16, 
+                'convlstm_activation': 'relu',
+                'convlstm_kernel_height': hp.quniform('convlstm_kernel_height', 1,6,1),
+                'convlstm_kernel_width':  hp.quniform('convlstm_kernel_width', 1,6,1),
+              
+                'hidden_layers': 2, 
+                'layers_neurons': 200, 
+                'layers_activation': 'relu',
                 
-                'hidden_layers': hp.choice('hidden_layers', [1,2,3]),
-                'layers_neurons': hp.quniform('layers_neurons', 8, 256, 1),
-                'layers_activation': hp.choice('layers_activation', ['tanh', 'relu'])}
+                'dropout': 0.25,
+                'LR': 0.001,
+                'LR_patience': 5, 
+                'ES_patience': 10}
 
 
 for sample, sample_name in enumerate([data_names[0]]):
@@ -36,10 +40,7 @@ for sample, sample_name in enumerate([data_names[0]]):
     x_valid = scaler_x.transform(x_valid)
     x_test = scaler_x.transform(x_test)  
             
-    save_path = os.path.join(results_dir, sample_name)
-    functions.save_folder(save_path)   
 
-    model = OptimizableModel(x_train, y_train, x_valid, y_valid, x_test, y_test,
-                             model_type = model_name)       
+    model = ANNModel(x_train, y_train, x_valid, y_valid, x_test=x_test, y_test=y_test, model_type = model_name)       
     best, trials = model.optimize(search_space, iters=100)
     print(best)

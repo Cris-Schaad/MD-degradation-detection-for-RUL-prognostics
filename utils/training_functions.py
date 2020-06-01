@@ -25,6 +25,9 @@ class ResultsSaver():
             f.close()
         
 
+def close_all():
+    plt.close('all')
+
 def prediction_plots(y_true, y_pred, plot_name="", save_dir=None, xlabel=None, ylabel=None):
     
     Y = np.column_stack((y_true, y_pred))
