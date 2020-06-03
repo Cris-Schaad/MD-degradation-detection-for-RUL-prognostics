@@ -65,7 +65,8 @@ def loss_plot(training_loss, velidation_loss, save_dir=False, plot_name=None):
     return None
 
 
-def rmse_eval(y_true, y_pred, test_name):
+def rmse_eval(y_true, y_pred, test_name=None):
         rmse = np.sqrt(np.mean(np.power(y_true - y_pred, 2)))    
-        print(test_name+' RMSE: {:.2f}'.format(rmse))
+        if test_name is not None:
+            print(test_name+' RMSE: {:.2f}'.format(rmse))
         return rmse
