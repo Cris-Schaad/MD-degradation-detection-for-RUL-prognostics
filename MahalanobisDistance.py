@@ -44,11 +44,12 @@ class MahalanobisDistance():
         if self.mode == 'covariance':
             if cov is None:    
                 cov = self.covariance_matrix(x)  
-                
+           
+            cov_inv = np.linalg.solve(cov, np.eye(n_vars))
             md = np.zeros(n_samples)    
             for i in range(len(x)):
                 x_i = (x[i,:] - mean)
-                md[i] = np.sqrt(np.dot(np.transpose(x_i), np.matmul(np.linalg.inv(cov), x_i))/n_vars)
+                md[i] = np.sqrt(np.dot(np.transpose(x_i), np.matmul(cov_inv, x_i))/n_vars)
     
         if self.mode == 'correlation':
             z = np.ones_like(x)
@@ -58,11 +59,12 @@ class MahalanobisDistance():
             if cov is None:    
                 cov = self.correlation_matrix(x)       
 
+            cov_inv = np.linalg.solve(cov, np.eye(n_vars))
             md = np.zeros(n_samples)    
             for i in range(len(z)):
                 z_i = z[i,:]
                 
-                MD = np.matmul(np.linalg.inv(cov), z_i)
+                MD = np.matmul(cov_inv, z_i)
                 md[i] = np.sqrt(np.dot(np.transpose(z_i), MD)/n_vars)
         return md, mean, std, cov
        

@@ -5,8 +5,8 @@ import numpy as np
 sys.path.append('..')
 from ANNModel import ANNModel
 from CMAPSS_utils import CMAPSS_importer
-from CMAPSS_utils import close_all
 from utils.data_processing import MinMaxScaler
+from utils.training_functions import close_all
 from utils.training_functions import ResultsSaver
 from utils.training_functions import prediction_plots
 from utils.training_functions import rmse_eval
@@ -33,8 +33,8 @@ params = {'cnn_layers': 4,
         
         'dropout': 0.25,
         'LR': 0.001,
-        'LR_patience': 5, 
-        'ES_patience': 10}
+        'LR_patience': 10, 
+        'ES_patience': 15}
 
 
 for sub_dataset in dataset_loader.subdatasets:
@@ -51,7 +51,7 @@ for sub_dataset in dataset_loader.subdatasets:
     saver = ResultsSaver(results_dir, sub_dataset, sub_dataset)
     Model = ANNModel(x_train, y_train, x_valid, y_valid, model_type=model_name)          
     
-    for i in range(10):
+    for i in range(3):
         model = Model.model_train(params)
         y_pred = model.predict(x_test)
         
@@ -64,7 +64,7 @@ for sub_dataset in dataset_loader.subdatasets:
         y_pred = []
         for x_sample in x_test_samples:
             y_pred.append(model.predict(scaler_x.transform(x_sample)))
-        np.savez(os.path.join(results_dir, 'model_'+str(i+1)+'_results.npz'), 
+        np.savez(os.path.join(results_dir, sub_dataset,'model_'+str(i+1)+'_results.npz'), 
                  y_true = y_test_samples,
                  y_pred = y_pred) 
         
@@ -73,7 +73,7 @@ for sub_dataset in dataset_loader.subdatasets:
             y_pred = []
             for x_sample in x_test_samples:
                 y_pred.append(model.predict(scaler_x.transform(x_sample)))
-            np.savez(os.path.join(results_dir, 'model_'+str(i+1)+'ignored_samples_results.npz'), 
-                     y_true = y_test,
+            np.savez(os.path.join(results_dir, sub_dataset,'model_'+str(i+1)+'_ignored_samples_results.npz'), 
+                     y_true = y_test_samples,
                      y_pred = y_pred) 
 Model.model_plot(model, results_dir, model_name=dataset_name+'_model.png')

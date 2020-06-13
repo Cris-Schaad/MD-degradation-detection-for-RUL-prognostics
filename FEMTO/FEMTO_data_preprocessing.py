@@ -56,7 +56,7 @@ def data_to_spectograms():
     
         #Spectograms
         sampling = 25600        #hertz            
-        win_len = 5            #miliseconds
+        win_len = 2.5            #miliseconds
         win_len = int(win_len*sampling//1000)
         win_len_time_step = 2560//win_len
     

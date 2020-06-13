@@ -82,7 +82,7 @@ class ANNModel():
     def ConvLSTM_build(self, params):        
         inputs = Input(self.input_shape)      
         x = inputs              
-        for layer in range(params['convlstm_layers']):
+        for layer in range(int(params['convlstm_layers'])):
             returns_seq = True if layer < params['convlstm_layers']-1 else False
             x = layers.ConvLSTM2D(filters=int(params['convlstm_filters']), 
                                         kernel_size=[int(params['convlstm_kernel_height']),
@@ -100,12 +100,11 @@ class ANNModel():
     
     
     def model_train(self, params):
-        print(params)
         clear_session()
 
         model = self.build_model(params)        
         adam = optimizers.Adam(lr=params['LR'])
-        model.compile(optimizer=adam, loss='mse', metrics=['accuracy'])    
+        model.compile(optimizer=adam, loss='mae', metrics=['accuracy'])    
         
         reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, 
                                                 patience=params['LR_patience'],
@@ -128,10 +127,11 @@ class ANNModel():
     
     
     def optimizable_model_train(self, space):
-
+        
+        print(space)
         model = self.model_train(space)
-        y_pred = model.predict(self.x_test)
-        rmse = self.rmse(self.y_test, y_pred)
+        y_pred = model.predict(self.x_valid)
+        rmse = self.rmse(self.y_valid, y_pred)
         print('RMSE: {:.2f}'.format(rmse))
         return rmse
     

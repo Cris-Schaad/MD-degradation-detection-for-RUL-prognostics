@@ -44,7 +44,7 @@ def plot_lifetime_distribution():
 
 def plot_md_datasets():
     datasets = ['FD001', 'FD002', 'FD003', 'FD004']
-    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_md_dataset.npz'), allow_pickle=True))
+    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_MD_dataset.npz'), allow_pickle=True))
     
     plt.close('all')
     for dataset in datasets:
@@ -87,7 +87,7 @@ def plot_md_datasets():
 
 def plot_md_samples_train():
     datasets = ['FD001', 'FD002', 'FD003', 'FD004']
-    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_md_dataset.npz'), allow_pickle=True))
+    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_MD_dataset.npz'), allow_pickle=True))
     
     plt.close('all')
     for dataset in datasets:

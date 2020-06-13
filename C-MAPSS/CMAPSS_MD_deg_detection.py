@@ -42,7 +42,7 @@ def MD_calculation_CMAPSS():
                             'threshold': iterator.threshold,
                             'ms_iter': np.asarray(iterator.iter_ms_dim)}
     np.savez(os.path.join(DATA_DIR,'CMAPSS_MD_dataset.npz'), **md_dict)
-# MD_calculation_CMAPSS()
+MD_calculation_CMAPSS()
 
 
 def sample_CMAPSS_by_MD():

@@ -4,9 +4,9 @@ from sklearn.model_selection import train_test_split
 
 
 class FEMTO_importer():
-    def __init__(self):
+    def __init__(self, dataset_name):
         
-        npz = np.load(os.path.join('processed_data', 'FEMTO_dataset.npz'), allow_pickle=True)
+        npz = np.load(os.path.join('processed_data', dataset_name+'_dataset.npz'), allow_pickle=True)
         self.x_data = npz['x_data']
         self.y_data = npz['y_data']
         self.data_names = npz['data_names']
