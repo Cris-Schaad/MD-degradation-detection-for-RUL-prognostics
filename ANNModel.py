@@ -20,8 +20,7 @@ from tensorflow.keras.models import save_model
 
 class ANNModel():
     
-    def __init__(self, x_train, y_train, x_valid, y_valid, model_type, x_test=None, y_test=None):
-        
+    def __init__(self, x_train, y_train, x_valid, y_valid, model_type='CNN', x_test=None, y_test=None):
         self.x_train = x_train
         self.y_train = y_train
         self.x_valid = x_valid
@@ -83,11 +82,12 @@ class ANNModel():
     def ConvLSTM_build(self, params):        
         inputs = Input(self.input_shape)      
         x = inputs              
-        for layer in range(params['lstm_layers']):
-            returns_seq = True if layer < params['lstm_layers']-1 else False
-            x = layers.ConvLSTM2D(filters=int(params['lstm_filters']), 
-                                        kernel_size=params['lstm_filter_shape'],
-                                        activation=params['lstm_activation'],
+        for layer in range(int(params['convlstm_layers'])):
+            returns_seq = True if layer < params['convlstm_layers']-1 else False
+            x = layers.ConvLSTM2D(filters=int(params['convlstm_filters']), 
+                                        kernel_size=[int(params['convlstm_kernel_height']),
+                                                     int(params['convlstm_kernel_width'])],
+                                        activation=params['convlstm_activation'],
                                         padding='same',
                                         return_sequences=returns_seq)(x)
         x = layers.Flatten()(x)   
@@ -104,7 +104,7 @@ class ANNModel():
 
         model = self.build_model(params)        
         adam = optimizers.Adam(lr=params['LR'])
-        model.compile(optimizer=adam, loss='mse', metrics=['accuracy'])    
+        model.compile(optimizer=adam, loss='mae', metrics=['accuracy'])    
         
         reduce_lr = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, 
                                                 patience=params['LR_patience'],
@@ -127,10 +127,11 @@ class ANNModel():
     
     
     def optimizable_model_train(self, space):
-
+        
+        print(space)
         model = self.model_train(space)
-        y_pred = model.predict(self.x_test)
-        rmse = self.rmse(self.y_test, y_pred)
+        y_pred = model.predict(self.x_valid)
+        rmse = self.rmse(self.y_valid, y_pred)
         print('RMSE: {:.2f}'.format(rmse))
         return rmse
     
