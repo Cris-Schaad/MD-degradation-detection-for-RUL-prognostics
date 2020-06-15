@@ -18,7 +18,8 @@ DATA_DIR = 'processed_data'
 
 
 def MD_calculation_CMAPSS():
-    sigmas = [0.3, 0.35, 0.4, 0.5]
+    sigmas = [1.45, 1.4, 1.5, 1.5]
+    # sigmas = [0.3, 0.35, 0.4, 0.5]
     md_dict = {}
     
     for i, dataset in enumerate(['FD001', 'FD002', 'FD003', 'FD004']): 
@@ -97,4 +98,4 @@ def sample_CMAPSS_by_MD():
                                      'y_test': y_test_under_deg}
     np.savez(os.path.join(DATA_DIR,'CMAPSS_dataset.npz'), **data_filtered)
     np.savez(os.path.join(DATA_DIR,'CMAPSS_unfiltered_dataset.npz'), **data_unfiltered)
-sample_CMAPSS_by_MD()
+# sample_CMAPSS_by_MD()

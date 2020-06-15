@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+
 def plot_lifetime_distribution():
     datasets = ['FD001', 'FD002', 'FD003', 'FD004']
     dataset_raw_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_raw.npz'), allow_pickle=True))
@@ -59,9 +60,9 @@ def plot_md_datasets():
                 deg_ind = x_deg_start[i]
                 no_deg_sample = sample[:deg_ind]
                 deg_sample = sample[deg_ind:]
-                plt.plot(range(len(no_deg_sample)), no_deg_sample, color='g', alpha=0.5, linewidth=0.5)
-                plt.plot(range(len(no_deg_sample), len(no_deg_sample)+len(deg_sample)), 
-                         deg_sample, color='r', alpha=0.5, linewidth=0.5)
+                plt.scatter(range(len(no_deg_sample)), no_deg_sample, color='g', alpha=0.5, linewidth=0.5, s=0.5)
+                plt.scatter(range(len(no_deg_sample), len(no_deg_sample)+len(deg_sample)), 
+                         deg_sample, color='r', alpha=0.5, linewidth=0.5, s=0.5)
                         
             plt.legend(('Healthy op.', 'Degradative op.'), loc='upper right', framealpha=1)
             ax = plt.gca()
@@ -82,7 +83,7 @@ def plot_md_datasets():
             plt.ylim((0,8))
             plt.savefig(os.path.join('plots',set_name+'_md_'+dataset), dpi=500,
                         bbox_inches='tight', pad_inches=0)
-# plot_md_datasets()
+plot_md_datasets()
 
 
 def plot_md_samples_train():
@@ -181,7 +182,7 @@ def plot_md_samples_test():
         plt.ylabel('Mahalanobis distance')
         plt.savefig(os.path.join('plots', 'test_undegraded_max_len_md_'+dataset), dpi=500,
                     bbox_inches='tight', pad_inches=0)
-plot_md_samples_test()
+# plot_md_samples_test()
 
 
 def plot_ms_iters():

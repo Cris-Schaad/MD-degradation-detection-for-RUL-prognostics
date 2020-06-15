@@ -44,8 +44,11 @@ for dataset in datasets:
     for i in range(np.concatenate(x_train).shape[1]):
         if len(np.unique(np.concatenate(x_train)[:,i])) <= 5:
             sensors_to_delete.append(i)
+            
+    if dataset == 'FD003':
+        sensors_to_delete = [0, 4, 5, 9, 15, 17, 18]
     
-    sensors_to_delete = [0, 4, 5, 9, 15, 17, 18]
+    # sensors_to_delete = [0, 4, 5, 9, 15, 17, 18]
     if len(sensors_to_delete) > 0:
         print('Sensors to delete: ', [i+1 for i in sensors_to_delete])
         x_train = np.asarray([np.delete(i, sensors_to_delete , axis=1) for i in x_train])

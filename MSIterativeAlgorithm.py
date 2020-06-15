@@ -46,7 +46,7 @@ class Detector():
 class MSIterativeAlgorithm():
     
     def __init__(self, k, n, sigma,
-                 tolerance=0.00001,
+                 tolerance=0,
                  max_iter=100):
         """
         k: number of conditions out of "n" consecutive points that are out of Mahalanobis Space
@@ -66,23 +66,36 @@ class MSIterativeAlgorithm():
     def iterative_calculation(self, x, n_iterations=10, verbose=True):
 
         deg_start_indx = [i.shape[0]-1 for i in x]
+        ms_index = [np.arange(0,len(sample), 1) for sample in x]
+        
         for i in range(self.max_iter):
             if verbose:
                 print('\tIteration: {:}'.format(int(i+1)))
                             
             # MD calculation
-            x_healthy = np.asarray([sample[:deg_start_indx[ind]] for ind, sample in enumerate(x)])    
+            x_healthy = np.asarray([sample[ms_index[ind]] for ind, sample in enumerate(x)])                
             self.m_d.fit_predict(np.concatenate(x_healthy))
             x_md = self.md_calculation_op(x)    
             
             # MS and threshold
-            ms = np.concatenate([sample[:deg_start_indx[ind]] for ind, sample in enumerate(x_md)])
-            threshold = np.mean(ms) + self.s*np.std(ms)
+            # ms = np.concatenate([sample[:deg_start_indx[ind]] for ind, sample in enumerate(x_md)])
+            # threshold = np.mean(ms) + self.s*np.std(ms)
+            
+            ms = np.concatenate([sample[ms_index[ind]] for ind, sample in enumerate(x_md)])
+            threshold = np.mean(ms) + self.s*np.std(ms)            
+            
             
             # Degradation start detection
             for ind, md_sample in enumerate(x_md):
                 deg_start_indx[ind] = self.detector.detect(md_sample, threshold)
+  
             
+          # MS index 
+            for ind, md_sample in enumerate(x_md):
+                ms_index[ind] = np.argwhere(md_sample[:deg_start_indx[ind]] <= threshold).flatten()
+                # ms_index[ind] = np.argwhere(md_sample <= threshold).flatten()
+              
+                
             # Algorithm convergence check
             self.iter_ms_dim.append(len(ms))            
             if i > 0: 

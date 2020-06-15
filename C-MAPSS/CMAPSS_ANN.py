@@ -73,7 +73,7 @@ for sub_dataset in dataset_loader.subdatasets:
             y_pred = []
             for x_sample in x_test_samples:
                 y_pred.append(model.predict(scaler_x.transform(x_sample)))
-            np.savez(os.path.join(results_dir, sub_dataset,'model_'+str(i+1)+'_ignored_samples_results.npz'), 
+            np.savez(os.path.join(results_dir, sub_dataset,'model_'+str(i+1)+'_ignored_samples_results.npz'),
                      y_true = y_test_samples,
                      y_pred = y_pred) 
 Model.model_plot(model, results_dir, model_name=dataset_name+'_model.png')

@@ -21,7 +21,7 @@ dataset_names = np.delete(data_set['name'], [9,11])
 time_window = 12
 
 #Degradation detector
-k = 9; n = 12; sigma = 1.35
+k = 6; n = 6; sigma = 4
 
 iterator = MSIterativeAlgorithm(k, n, sigma)
 iterator.iterative_calculation(x_data, verbose=False)
@@ -41,24 +41,24 @@ for i, sample in enumerate(x_data_md):
     plt.title(dataset_names[i])
 
 
-# Data to images
-x_data, y_data = time_window_sampling(x_spec, y_data, timestep_per_image,temporal_axis=1,
-                                      time_step=timestep_per_image, add_last_dim=True)
-x_data = samples_reverse(x_data)
+# # Data to images
+# x_data, y_data = time_window_sampling(x_spec, y_data, timestep_per_image,temporal_axis=1,
+#                                       time_step=timestep_per_image, add_last_dim=True)
+# x_data = samples_reverse(x_data)
 
-# Sampling from degradation start index
-deg_start_ind = [i//data_set['feature_timestep'] for i in deg_start_ind]
-y_data = np.asarray([np.expand_dims(10*np.linspace(len(i), 1, len(i)), axis=1) for i in x_data])
-x_data, y_data = iterator.detector.sampling_from_index(x_data, y_data, deg_start_ind, time_window)
+# # Sampling from degradation start index
+# deg_start_ind = [i//data_set['feature_timestep'] for i in deg_start_ind]
+# y_data = np.asarray([np.expand_dims(10*np.linspace(len(i), 1, len(i)), axis=1) for i in x_data])
+# x_data, y_data = iterator.detector.sampling_from_index(x_data, y_data, deg_start_ind, time_window)
 
 
     
-# Sequence of images
-x_data, y_data = time_window_sampling(x_data, y_data, time_window)
+# # Sequence of images
+# x_data, y_data = time_window_sampling(x_data, y_data, time_window)
 
 
-# Saving
-np.savez(os.path.join('processed_data', 'FEMTO_dataset.npz'),
-        x_data = x_data,
-        y_data = y_data,
-        data_names = dataset_names)
+# # Saving
+# np.savez(os.path.join('processed_data', 'FEMTO_dataset.npz'),
+#         x_data = x_data,
+#         y_data = y_data,
+#         data_names = dataset_names)

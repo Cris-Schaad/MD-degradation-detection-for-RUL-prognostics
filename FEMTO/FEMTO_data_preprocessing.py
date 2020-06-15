@@ -65,7 +65,7 @@ def data_to_spectograms():
         sample_spectogram.append(np.transpose(subsamples_spectograms))   
         
         #Features
-        feature_win_len = 50             #miliseconds
+        feature_win_len = 100             #miliseconds
         feature_win_len = int(feature_win_len*sampling//1000)
         feature_win_len_time_step = 2560//feature_win_len
 

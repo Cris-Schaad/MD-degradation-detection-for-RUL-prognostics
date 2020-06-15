@@ -48,7 +48,7 @@ class MahalanobisDistance():
             cov_inv = np.linalg.solve(cov, np.eye(n_vars))
             md = np.zeros(n_samples)    
             for i in range(len(x)):
-                x_i = (x[i,:] - mean)
+                x_i = x[i,:] - mean
                 md[i] = np.sqrt(np.dot(np.transpose(x_i), np.matmul(cov_inv, x_i))/n_vars)
     
         if self.mode == 'correlation':
