@@ -18,7 +18,7 @@ DATA_DIR = 'processed_data'
 
 
 def MD_calculation_CMAPSS():
-    sigmas = [1.45, 1.4, 1.5, 1.5]
+    sigmas = [1.45, 1.35, 1.5, 1.4]
     # sigmas = [0.3, 0.35, 0.4, 0.5]
     md_dict = {}
     

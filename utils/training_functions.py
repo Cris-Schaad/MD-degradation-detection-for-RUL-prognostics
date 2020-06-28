@@ -52,7 +52,7 @@ def prediction_plots(y_true, y_pred, plot_name="", save_dir=None, xlabel=None, y
     plt.ylabel('Absolute error')
 
     if save_dir:
-        plt.savefig(os.path.join(save_dir,plot_name+'.svg'))
+        plt.savefig(os.path.join(save_dir ,plot_name+'.svg'))
     return None
 
 

@@ -27,11 +27,12 @@ def raw_to_npz():
         for file in vib_files:
             dataframe = pd.read_csv(os.path.join(folder, sample, file), header=None)
             data_segment = np.asarray(dataframe.iloc[:,4])
-            
+
             if np.max(np.abs(data_segment)) >= 20:
                 if np.max(np.abs(sample_data[-1])) >= 20:
                     if np.max(np.abs(sample_data[-2])) >= 20:
                         break
+                    
             sample_data.append(data_segment)
         raw_samples.append(np.concatenate(sample_data))
         sample_name.append(sample)
@@ -52,7 +53,8 @@ def data_to_spectograms():
     sample_rul = []
     for i in range(len(data_raw)):
         sample = data_raw[i]
-        print(sample_name[i])       
+        print(sample_name[i], np.max(sample))    
+        # sample = sample[:np.argwhere(np.abs(sample)==np.max(np.abs(sample)))[0][0]]
     
         #Spectograms
         sampling = 25600        #hertz            
@@ -65,7 +67,7 @@ def data_to_spectograms():
         sample_spectogram.append(np.transpose(subsamples_spectograms))   
         
         #Features
-        feature_win_len = 100             #miliseconds
+        feature_win_len = 50             #miliseconds
         feature_win_len = int(feature_win_len*sampling//1000)
         feature_win_len_time_step = 2560//feature_win_len
 

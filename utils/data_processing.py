@@ -146,7 +146,7 @@ def samples_reverse(x):
 
 def features(x):
     rms = np.sqrt(np.mean(x**2, axis=0))
-    ptp = np.ptp(x, axis=0)
+    ptp = np.max(x) - np.min(x)
     cf = abs(ptp)/rms
     mean = np.mean(x, axis=0)
     maxi = np.max(abs(x), axis=0)

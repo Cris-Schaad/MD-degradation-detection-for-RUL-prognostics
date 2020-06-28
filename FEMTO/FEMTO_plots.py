@@ -6,6 +6,17 @@ import matplotlib.pyplot as plt
 
 plt.close('all')
 
+dataset_raw_npz = dict(np.load(os.path.join('processed_data', 'FEMTO_raw_samples.npz'), allow_pickle=True))    
+samples_name = dataset_raw_npz['name']
+samples_raw = dataset_raw_npz['data_raw']
+
+
+for name, data in zip(samples_name, samples_raw):      
+   
+    plt.figure()
+    plt.plot(range(len(data)), data)
+    plt.title(name)
+
 #dataset = np.load('FEMTO_raw_samples.npz', allow_pickle=True)
 #raw_data = dataset['data_raw']
 #rul_data = dataset['data_rul']

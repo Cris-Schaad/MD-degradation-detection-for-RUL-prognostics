@@ -18,7 +18,7 @@ class Detector():
                     sample_k = sample_k +1
                 
             if sample_k >= self.k:
-                return i
+                return i - self.n 
             
             if i == len(x)-1:
                 if verbose:

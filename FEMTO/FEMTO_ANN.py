@@ -1,5 +1,6 @@
 import os
 import sys
+import numpy as np
 
 sys.path.append('..')
 from ANNModel import ANNModel
@@ -19,54 +20,25 @@ dataset_loader = FEMTO_importer(dataset_name)
 close_all()
 
 params = {'convlstm_layers': 1,
-        'convlstm_filters': 16, 
+        'convlstm_filters': 22, 
         'convlstm_activation': 'relu',
         'convlstm_kernel_height': 8,
-        'convlstm_kernel_width':  8,
+        'convlstm_kernel_width': 8,
       
-        'hidden_layers': 2, 
-        'layers_neurons': 512, 
+        'hidden_layers': 4, 
+        'layers_neurons': 208, 
         'layers_activation': 'relu',
         
-        'dropout': 0.2,
+        'dropout': 0.5,
         'LR': 0.001,
         'LR_patience': 5, 
         'ES_patience': 10}
-
-# params = {'cnn_layers': 5,
-#         'cnn_filters': 48, 
-#         'cnn_activation': 'relu',
-#         'cnn_kernel_height': 8,
-#         'cnn_kernel_width':  8,
-#         'cnn_padding': 'same',
-      
-#         'hidden_layers': 2, 
-#         'layers_neurons': 200, 
-#         'layers_activation': 'relu',
-        
-#         'dropout': 0.25,
-#         'LR': 0.001,
-#         'LR_patience': 40, 
-#         'ES_patience': 50}
-
-# params = {'lstm_layers': 3,
-#         'lstm_units': 64, 
-#         'lstm_activation': 'relu',
-      
-#         'hidden_layers': 2, 
-#         'layers_neurons': 200, 
-#         'layers_activation': 'relu',
-        
-#         'dropout': 0.25,
-#         'LR': 0.001,
-#         'LR_patience': 40, 
-#         'ES_patience': 50}
 
 
 for sample, sample_name in enumerate(dataset_loader.data_names):
     print('\n'+sample_name)
     
-    x_train, x_valid, y_train, y_valid = dataset_loader.get_train_set(sample, valid_size=0.33)
+    x_train, x_valid, y_train, y_valid = dataset_loader.get_train_set(sample, valid_size=0.2)
     x_test, y_test = dataset_loader.get_test_sample(sample)
     
     scaler_x = MinMaxScaler(feature_range=(0,1), feature_axis=2)
@@ -79,11 +51,17 @@ for sample, sample_name in enumerate(dataset_loader.data_names):
     Model = ANNModel(x_train, y_train, x_valid, y_valid, x_test=x_test, y_test=y_test,
                      model_type=model_name)      
          
-    for i in range(1):
+    for i in range(10):
         model = Model.model_train(params)
         y_pred = model.predict(x_test)
 
-        plot_name = str('FEMTO RUL '+sample_name+' prediction iter '+str(i+1))
-        prediction_plots(y_test, y_pred, plot_name=sample_name)
-        rmse_eval(y_test, y_pred, sample_name)
+        prediction_plots(y_test, y_pred, plot_name=sample_name+'_iter_'+str(i+1), save_dir=os.path.join(results_dir, sample_name))
+        test_loss = rmse_eval(y_test, y_pred, sample_name)
+        saver.save_iter(i+1, test_loss)    
         
+        # Test set results saving
+        np.savez(os.path.join(results_dir, sample_name,'model_'+str(i+1)+'_results.npz'), 
+                 y_true = y_test,
+                 y_pred = y_pred) 
+
+Model.model_plot(model, results_dir, model_name=dataset_name+'_model.png')

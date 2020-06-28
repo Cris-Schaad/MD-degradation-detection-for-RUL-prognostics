@@ -51,7 +51,7 @@ for sub_dataset in dataset_loader.subdatasets:
     saver = ResultsSaver(results_dir, sub_dataset, sub_dataset)
     Model = ANNModel(x_train, y_train, x_valid, y_valid, model_type=model_name)          
     
-    for i in range(3):
+    for i in range(2):
         model = Model.model_train(params)
         y_pred = model.predict(x_test)
         
