@@ -16,7 +16,7 @@ results_dir = os.path.join(os.getcwd(), 'training_results', dataset_name, model)
 close_all()
 
 
-def rmse_rul_baseline_non_degraded_samples():
+def RUL_RMSE_stats_non_degraded_samples():
     dataset_name = 'CMAPSS_unfiltered'
     results_dir = os.path.join(os.getcwd(), 'training_results', dataset_name, model)
 
@@ -31,7 +31,19 @@ def rmse_rul_baseline_non_degraded_samples():
             rmse.append(rmse_eval(y_true, y_pred))
         print(sub_dataset+' mean RMSE: {:.2f}'.format(np.mean(rmse)))
         print(sub_dataset+' std. RMSE: {:.2f}'.format(np.std(rmse)))        
-# rmse_rul_baseline_non_degraded_samples()    
+# RUL_RMSE_stats_non_degraded_samples()
+
+
+def RUL_RMSE_stats():
+    dataset_name = 'CMAPSS_unfiltered'
+    results_dir = os.path.join(os.getcwd(), 'training_results', dataset_name, model)
+
+    for sub_dataset in ['FD001','FD002','FD003','FD004']:
+        
+        data = pd.read_csv(os.path.join(results_dir, sub_dataset, sub_dataset+'.csv'), sep=',')
+        print(sub_dataset+' mean RMSE: {:.2f}'.format(np.mean(data[' RMSE'])))
+        print(sub_dataset+' std. RMSE: {:.2f}'.format(np.std(data[' RMSE'])))        
+# RUL_RMSE_stats()  
     
     
     
@@ -41,6 +53,7 @@ def longest_sample_RUL_prediction():
         
         res_rmse = pd.read_csv(os.path.join(results_dir, sub_dataset, sub_dataset+'.csv'))
         best_model_name = 'model_'+str(res_rmse.iloc[res_rmse[' RMSE'].idxmin(),0])+'_results.npz'
+        print(best_model_name)
         res_data = np.load(os.path.join(results_dir, sub_dataset, best_model_name),allow_pickle=True)
         
         y_true = res_data['y_true']

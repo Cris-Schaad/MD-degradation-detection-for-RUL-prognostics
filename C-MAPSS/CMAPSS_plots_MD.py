@@ -3,18 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+DATASETS = ['FD001', 'FD002', 'FD003', 'FD004']
+RAW_NPZ = dict(np.load(os.path.join('processed_data', 'CMAPSS_raw.npz'), allow_pickle=True))
+MD_NPZ = dict(np.load(os.path.join('processed_data', 'CMAPSS_MD_dataset.npz'), allow_pickle=True))
+
+
 
 def plot_lifetime_distribution():
-    datasets = ['FD001', 'FD002', 'FD003', 'FD004']
-    dataset_raw_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_raw.npz'), allow_pickle=True))
-    
     plt.close('all')
     
-    for dataset in datasets:
+    for dataset in DATASETS:
         train_lens = []
         test_lens = []
         
-        data = dataset_raw_npz[dataset][()]
+        data = RAW_NPZ[dataset][()]
         for i in data['y_train']:
             train_lens.append(len(i))
     
@@ -38,19 +40,17 @@ def plot_lifetime_distribution():
         plt.text(0.55, 0.7, 'Test set mean lifetime '+'{:.2f}'.format(np.mean(test_lens)), 
                  fontsize=10, bbox=dict(facecolor='green', alpha=0.3), transform=plt.gca().transAxes)
         plt.legend()
-        plt.savefig(os.path.join('plots','life_dist_'+dataset), bbox_inches='tight', pad_inches=0)
+        plt.savefig(os.path.join('plots', 'life_dist_'+dataset), bbox_inches='tight', pad_inches=0)
 # plot_lifetime_distribution()
 
 
 
-def plot_md_datasets():
-    datasets = ['FD001', 'FD002', 'FD003', 'FD004']
-    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_MD_dataset.npz'), allow_pickle=True))
-    
+def plot_md_DATASETS():
+
     plt.close('all')
-    for dataset in datasets:
+    for dataset in DATASETS:
         for set_name in ['train', 'test']:
-            data = dataset_npz[dataset][()]
+            data = MD_NPZ[dataset][()]
             x_md = data['x_'+set_name+'_md']
             threshold = data['threshold']
             x_deg_start = data[set_name+'_deg']
@@ -81,18 +81,16 @@ def plot_md_datasets():
             plt.xlabel('Operational cycles')
             plt.ylabel('Mahalanobis distance')
             plt.ylim((0,8))
-            plt.savefig(os.path.join('plots',set_name+'_md_'+dataset), dpi=500,
+            plt.savefig(os.path.join('plots','MD_results',set_name+'_md_'+dataset), dpi=500,
                         bbox_inches='tight', pad_inches=0)
-plot_md_datasets()
+# plot_md_DATASETS()
 
 
-def plot_md_samples_train():
-    datasets = ['FD001', 'FD002', 'FD003', 'FD004']
-    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_MD_dataset.npz'), allow_pickle=True))
-    
+def plot_md_longest_shortest_samples_train():
+
     plt.close('all')
-    for dataset in datasets:
-        data = dataset_npz[dataset][()]
+    for dataset in DATASETS:
+        data = MD_NPZ[dataset][()]
         x_md = data['x_train_md']
         threshold = data['threshold']
         x_deg_start = data['train_deg']
@@ -130,69 +128,66 @@ def plot_md_samples_train():
             plt.axhline(threshold, c='k')
             plt.xlabel('Operational cycles')
             plt.ylabel('Mahalanobis distance')
-            plt.savefig(os.path.join('plots', 'train_'+name+'_len_md_'+dataset), dpi=500,
+            plt.savefig(os.path.join('plots', 'MD_results','train_'+name+'_len_md_'+dataset), dpi=500,
                         bbox_inches='tight', pad_inches=0)
-# plot_md_samples_train()
+# plot_md_longest_shortest_samples_train()
 
 
-def plot_md_samples_test():
-    datasets = ['FD001', 'FD002', 'FD003', 'FD004']
-    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_md_dataset.npz'), allow_pickle=True))
+def plot_md_longest_deg_undeg_test():
 
     plt.close('all')
-    for dataset in datasets:
-        data = dataset_npz[dataset][()]
+    for dataset in DATASETS:
+        data = MD_NPZ[dataset][()]
         x_md = data['x_test_md']
         threshold = data['threshold']
         x_deg_start = data['test_deg']
-        
-        useful_ind = [i for i, x in enumerate(x_md) if x_deg_start[i] == len(x)-1]
-        x_md = x_md[useful_ind]
-        x_deg_start = np.asarray(x_deg_start)[useful_ind]
-        
-        x_lens = [len(x) for i, x in enumerate(x_md)]
-        max_len_sample_ind = np.argwhere(x_lens == np.max(x_lens))[0][0]
-
-        plt.figure(figsize=(8,4))
-        deg_ind = x_deg_start[max_len_sample_ind]
-        sample = x_md[max_len_sample_ind]
-        
-        no_deg_sample = sample[:deg_ind]
-        deg_sample = sample[deg_ind:]
-        plt.plot(range(len(no_deg_sample)), no_deg_sample, color='g', alpha=0.5, linewidth=2)
-        plt.plot(range(len(no_deg_sample), len(no_deg_sample)+len(deg_sample)), 
-                 deg_sample, color='r', alpha=0.5, linewidth=2)
-                
-        plt.legend(('Healthy op.', 'Degradative op.'), loc='upper right', framealpha=1)
-        ax = plt.gca()
-        leg = ax.get_legend()
-        leg.legendHandles[0].set_color('g')
-        leg.legendHandles[0].set_alpha(1)
-        leg.legendHandles[0].set_linewidth(2)
-        leg.legendHandles[1].set_color('r')
-        leg.legendHandles[1].set_alpha(1)
-        leg.legendHandles[1].set_linewidth(2)
-        
-        plt.text(0.05, 0.85, 'Threshold MD: {:.2f}'.format(threshold), 
-                 fontsize=10, bbox=dict(facecolor='yellow', alpha=0.3), transform=plt.gca().transAxes)
-
-        plt.text(0.45, 0.9, 'Test set', fontsize=14, transform=plt.gca().transAxes)            
-        plt.axhline(threshold, c='k')
-        plt.xlabel('Operational cycles')
-        plt.ylabel('Mahalanobis distance')
-        plt.savefig(os.path.join('plots', 'test_undegraded_max_len_md_'+dataset), dpi=500,
-                    bbox_inches='tight', pad_inches=0)
-# plot_md_samples_test()
+ 
+        for state in ['degraded', 'undegraded']:
+            if state == 'undegraded':
+                x_lens = [len(x) if x_deg_start[i] == len(x)-1 else 0 for i, x in enumerate(x_md)]
+                max_len_ind = np.argwhere(x_lens == np.max(x_lens))[0][0]
+            if state == 'degraded':
+                x_lens = [len(x) if x_deg_start[i] < len(x)-1 else 0 for i, x in enumerate(x_md)]
+                max_len_ind = np.argwhere(x_lens == np.max(x_lens))[0][0]
+    
+            plt.figure(figsize=(8,4))
+            deg_ind = x_deg_start[max_len_ind]
+            sample = x_md[max_len_ind]
+            
+            no_deg_sample = sample[:deg_ind]
+            deg_sample = sample[deg_ind:]
+            plt.plot(range(len(no_deg_sample)), no_deg_sample, color='g', alpha=0.5, linewidth=2)
+            plt.plot(range(len(no_deg_sample), len(no_deg_sample)+len(deg_sample)), 
+                     deg_sample, color='r', alpha=0.5, linewidth=2)
+                    
+            plt.legend(('Healthy op.', 'Degradative op.'), loc='upper right', framealpha=1)
+            ax = plt.gca()
+            leg = ax.get_legend()
+            leg.legendHandles[0].set_color('g')
+            leg.legendHandles[0].set_alpha(1)
+            leg.legendHandles[0].set_linewidth(2)
+            leg.legendHandles[1].set_color('r')
+            leg.legendHandles[1].set_alpha(1)
+            leg.legendHandles[1].set_linewidth(2)
+            
+            plt.text(0.05, 0.85, 'Threshold MD: {:.2f}'.format(threshold), 
+                     fontsize=10, bbox=dict(facecolor='yellow', alpha=0.3), transform=plt.gca().transAxes)
+    
+            plt.text(0.45, 0.9, 'Train set', fontsize=14, transform=plt.gca().transAxes)            
+            plt.axhline(threshold, c='k')
+            plt.xlabel('Operational cycles')
+            plt.ylabel('Mahalanobis distance')
+            plt.savefig(os.path.join('plots', 'MD_results','test_longest_'+state+'_md_'+dataset), dpi=500,
+                        bbox_inches='tight', pad_inches=0)
+# plot_md_longest_deg_undeg_test()
 
 
 def plot_ms_iters():
-    datasets = ['FD001', 'FD002', 'FD003', 'FD004']
-    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_md_dataset.npz'), allow_pickle=True))['dataset'][()]
-    
+
     plt.close('all')
     plt.figure()
-    for dataset in datasets:
-        data = dataset_npz[dataset]
+    for dataset in DATASETS:
+        data = MD_NPZ[dataset][()]
         ms_iter = data['ms_iter']/len(np.concatenate(data['x_train_md']))
         plt.plot(ms_iter, label=dataset)
     plt.legend()
@@ -201,17 +196,15 @@ def plot_ms_iters():
     plt.grid(dashes=(1,1))
     plt.xlabel('Number of iterations')
     plt.ylabel('MS proportion with respect to dataset')        
-    plt.savefig(os.path.join('plots','MS_prop'), bbox_inches='tight', pad_inches=0)
-# plot_ms_iters()
+    plt.savefig(os.path.join('plots','MD_results','MS_prop'), bbox_inches='tight', pad_inches=0)
+plot_ms_iters()
 
 
 def plot_traing_set_size_change():
-    datasets = ['FD001', 'FD002', 'FD003', 'FD004']
-    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_md_dataset.npz'), allow_pickle=True))['dataset'][()]
-    
+ 
     plt.close('all')
-    for dataset in datasets:
-        data = dataset_npz[dataset]
+    for dataset in DATASETS:
+        data = MD_NPZ[dataset][()]
         x_md = data['x_train_md']
         x_deg_start = data['train_deg']
 
@@ -233,6 +226,6 @@ def plot_traing_set_size_change():
         plt.legend()
         plt.xlabel('Lifetime flight cycles')
         plt.ylabel('Number of samples')
-        plt.savefig(os.path.join('plots', dataset+'_training_set_rul_dist'), dpi=500,
+        plt.savefig(os.path.join('plots', 'MD_results',dataset+'_training_set_rul_dist'), dpi=500,
                     bbox_inches='tight', pad_inches=0)
 # plot_traing_set_size_change()

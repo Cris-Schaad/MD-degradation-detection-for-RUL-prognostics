@@ -18,25 +18,25 @@ close_all()
 
 
 from hyperopt import hp
-search_space = {'cnn_layers': 4,
-                'cnn_filters': 168, 
+search_space = {'cnn_layers': hp.quniform('cnn_layers', 1, 5, 1),
+                'cnn_filters': hp.quniform('cnn_filters', 8,256,8), 
                 'cnn_activation': 'relu',
-                'cnn_kernel_height':  hp.quniform('cnn_kernel_height', 1,6,1),
-                'cnn_kernel_width':  hp.quniform('cnn_kernel_width', 1,6,1),
+                'cnn_kernel_height': hp.quniform('cnn_kernel_height', 1,6,1),
+                'cnn_kernel_width': hp.quniform('cnn_kernel_width', 1,6,1),
                 'cnn_padding': 'same',
               
-                'hidden_layers': 2, 
-                'layers_neurons': 200, 
+                'hidden_layers':  hp.quniform('hidden_layers', 1, 5, 1), 
+                'layers_neurons':  hp.quniform('layers_neurons', 8, 1024, 8), 
                 'layers_activation': 'relu',
                 
-                'dropout': 0.25,
+                'dropout': hp.quniform('dropout', 0, 0.5, 0.01),
                 'LR': 0.001,
                 'LR_patience': 5, 
                 'ES_patience': 10}
 
 
 
-for sub_dataset in ['FD001']:
+for sub_dataset in ['FD003']:
     print('\n'+sub_dataset)
     x_train, x_valid, y_train, y_valid =  dataset_loader.get_train_set(sub_dataset, valid_size=0.2)
 

@@ -20,19 +20,19 @@ dataset_loader = FEMTO_importer(dataset_name)
 close_all()
 
 params = {'convlstm_layers': 1,
-        'convlstm_filters': 22, 
+        'convlstm_filters': 32, 
         'convlstm_activation': 'relu',
-        'convlstm_kernel_height': 8,
-        'convlstm_kernel_width': 8,
+        'convlstm_kernel_height': 10,
+        'convlstm_kernel_width': 11,
       
-        'hidden_layers': 4, 
-        'layers_neurons': 208, 
+        'hidden_layers': 5, 
+        'layers_neurons': 656, 
         'layers_activation': 'relu',
         
-        'dropout': 0.5,
+        'dropout': 0.32,
         'LR': 0.001,
-        'LR_patience': 5, 
-        'ES_patience': 10}
+        'LR_patience': 3, 
+        'ES_patience': 5}
 
 
 for sample, sample_name in enumerate(dataset_loader.data_names):

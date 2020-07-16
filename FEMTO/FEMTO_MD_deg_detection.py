@@ -20,31 +20,24 @@ features_per_timestep = data_set['feature_timestep']
 dataset_names = np.delete(data_set['name'], [9,11])
 
 
-# x_data = data_set['data_features']
-# x_spec = data_set['data_spectograms']
-# y_data = data_set['data_rul']
-# timestep_per_image = data_set['spec_timestep']
-# dataset_names = data_set['name']
-
 skip = 6*30
-
 for i in range(len(x_data)):
     x_data[i] = x_data[i][skip*features_per_timestep:]
 
 time_window = 6
 
 #Degradation detector
-k = 9; n = 12; sigma = 3
+k = 3; n = 3; sigma = 1.6
 
 iterator = MSIterativeAlgorithm(k, n, sigma)
 iterator.iterative_calculation(x_data, verbose=False)
 
 x_data_md = iterator.md_calculation_op(x_data)
-deg_start_ind = iterator.detect_degradation_start(x_data, False)
+deg_start = iterator.detect_degradation_start(x_data, False)
 threshold = iterator.threshold
 
 for i, sample in enumerate(x_data_md):
-    test_deg = deg_start_ind[i]
+    test_deg = deg_start[i]
         
     print(dataset_names[i]+' sample RUL: {:.0f}'.format(len(sample)-test_deg))    
     plt.figure()
@@ -64,7 +57,7 @@ for i in range(len(x_data)):
     
     
 # Sampling from degradation start index
-deg_start_ind = [i//features_per_timestep for i in deg_start_ind]
+deg_start_ind = [i//features_per_timestep for i in deg_start]
 y_data = np.asarray([np.expand_dims(10*np.linspace(len(i), 1, len(i)), axis=1) for i in x_data])
 x_data, y_data = iterator.detector.sampling_from_index(x_data, y_data, deg_start_ind, time_window)
 
@@ -78,4 +71,6 @@ x_data, y_data = time_window_sampling(x_data, y_data, time_window)
 np.savez(os.path.join('processed_data', 'FEMTO_dataset.npz'),
         x_data = x_data,
         y_data = y_data,
+        x_data_md = x_data_md,
+        x_deg_start = deg_start, 
         data_names = dataset_names)

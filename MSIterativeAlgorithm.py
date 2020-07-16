@@ -18,7 +18,7 @@ class Detector():
                     sample_k = sample_k +1
                 
             if sample_k >= self.k:
-                return i - self.n 
+                return i 
             
             if i == len(x)-1:
                 if verbose:
@@ -47,7 +47,7 @@ class MSIterativeAlgorithm():
     
     def __init__(self, k, n, sigma,
                  tolerance=0,
-                 max_iter=100):
+                 max_iter=500):
         """
         k: number of conditions out of "n" consecutive points that are out of Mahalanobis Space
         n: number of consecutive conditions
@@ -65,9 +65,10 @@ class MSIterativeAlgorithm():
         
     def iterative_calculation(self, x, n_iterations=10, verbose=True):
 
-        deg_start_indx = [i.shape[0]-1 for i in x]
-        ms_index = [np.arange(0,len(sample), 1) for sample in x]
+        # Initialy all instances are in the MS
+        ms_index = [np.arange(0, len(sample), 1) for sample in x]        
         
+        # Iterativa algorithm
         for i in range(self.max_iter):
             if verbose:
                 print('\tIteration: {:}'.format(int(i+1)))
@@ -76,43 +77,43 @@ class MSIterativeAlgorithm():
             x_healthy = np.asarray([sample[ms_index[ind]] for ind, sample in enumerate(x)])                
             self.m_d.fit_predict(np.concatenate(x_healthy))
             x_md = self.md_calculation_op(x)    
-            
-            # MS and threshold
-            # ms = np.concatenate([sample[:deg_start_indx[ind]] for ind, sample in enumerate(x_md)])
-            # threshold = np.mean(ms) + self.s*np.std(ms)
-            
             ms = np.concatenate([sample[ms_index[ind]] for ind, sample in enumerate(x_md)])
-            threshold = np.mean(ms) + self.s*np.std(ms)            
             
+            # Normalizing distribution
+            ms = np.log(ms)
+            ms = (ms - np.mean(ms))/np.std(ms)
+            self.threshold = np.mean(ms) + self.s*np.std(ms)            
             
             # Degradation start detection
             for ind, md_sample in enumerate(x_md):
-                deg_start_indx[ind] = self.detector.detect(md_sample, threshold)
-  
-            
-          # MS index 
-            for ind, md_sample in enumerate(x_md):
-                ms_index[ind] = np.argwhere(md_sample[:deg_start_indx[ind]] <= threshold).flatten()
-                # ms_index[ind] = np.argwhere(md_sample <= threshold).flatten()
-              
+                deg_start = self.detector.detect(md_sample, self.threshold)
+                ms_index[ind] = np.arange(0, deg_start, 1)              
                 
             # Algorithm convergence check
             self.iter_ms_dim.append(len(ms))            
             if i > 0: 
-                if (self.iter_ms_dim[i-1] - self.iter_ms_dim[i])/self.iter_ms_dim[i-1] <= self.tol:
-                    self.threshold = threshold
+                if np.abs((self.iter_ms_dim[i-1] - self.iter_ms_dim[i]))/self.iter_ms_dim[i-1] <= self.tol:
                     break
             
             if i == self.max_iter-1:
                 print('Max iterations ({:}) reached'.format(self.max_iter))
-         
+        
+        plt.figure()
+        plt.hist(np.concatenate([sample[ms_index[ind]] for ind, sample in enumerate(x_md)]),
+                 bins=100, alpha=0.5, density=True)
+        
+        plt.hist(np.concatenate([sample[ms_index[ind][-1]:] for ind, sample in enumerate(x_md)]), 
+                 bins=100, alpha=0.5, density=True)
+        plt.hist(np.concatenate([sample[-2:] for ind, sample in enumerate(x_md)]), 
+                 bins=20, alpha=0.5, density=True)
+        
         print('\tCovergence at iter: {}'.format(len(self.iter_ms_dim)))                     
         print('\tMean MD in MS: {:.2f}'.format(np.mean(ms)))
-        print('\tThreshold: {:.2f}'.format(threshold))       
+        print('\tThreshold: {:.2f}'.format(self.threshold))       
         print('\tMS proportion: {:.2f}%\n'.format(100*len(ms)/len(np.concatenate(x))))       
         
         for ind, md_sample in enumerate(x_md):
-            self.detector.detect(md_sample, threshold, verbose=True)    
+            self.detector.detect(md_sample, self.threshold, verbose=True)    
         return None
     
     

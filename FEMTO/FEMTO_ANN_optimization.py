@@ -12,22 +12,22 @@ dataset_loader = FEMTO_importer('FEMTO')
 close_all()
 
 
-scaler_x = MinMaxScaler(feature_range=(0,1), feature_axis=1)
+scaler_x = MinMaxScaler(feature_range=(0,1), feature_axis=2)
 from hyperopt import hp
-search_space =  {'convlstm_layers': 1,
-                'convlstm_filters': 22, 
+search_space =  {'convlstm_layers':  hp.quniform('convlstm_layers', 1,2,1),
+                'convlstm_filters':  hp.quniform('convlstm_filters', 8,32,2), 
                 'convlstm_activation': 'relu',
                 'convlstm_kernel_height': hp.quniform('convlstm_kernel_height', 2,12,1),
                 'convlstm_kernel_width': hp.quniform('convlstm_kernel_width', 2,12,1),
               
                 'hidden_layers': hp.quniform('hidden_layers', 1,5,1), 
-                'layers_neurons': hp.quniform('layers_neurons', 8,256,8), 
+                'layers_neurons': hp.quniform('layers_neurons', 8,1024,8), 
                 'layers_activation': 'relu',
                 
                 'dropout': hp.quniform('dropout', 0, 0.8, 0.001),
                 'LR': 0.001,
-                'LR_patience': 5, 
-                'ES_patience': 10}
+                'LR_patience': 3, 
+                'ES_patience': 5}
 
 
 sample = 2
