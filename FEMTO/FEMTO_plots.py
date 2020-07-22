@@ -1,10 +1,23 @@
 import os
-
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 
 plt.close('all')
+dataset = 'FEMTO'
+model = 'ConvLSTM'
+
+def RUL_RMSE_stats():
+    results_dir = os.path.join(os.getcwd(), 'training_results', dataset, model)
+    samples = [i for i in os.listdir(results_dir) if 'Bearing' in i ]
+    for sub_dataset in samples:
+        
+        data = pd.read_csv(os.path.join(results_dir, sub_dataset, sub_dataset+'.csv'), sep=',')
+        print(sub_dataset+' min RMSE: {:.2f}'.format(np.min(data[' RMSE'])))
+        print(sub_dataset+' mean RMSE: {:.2f}'.format(np.mean(data[' RMSE'])))
+        print(sub_dataset+' std. RMSE: {:.2f}\n'.format(np.std(data[' RMSE'])))        
+# RUL_RMSE_stats()  
 
 
 def plot_raw_samples():
@@ -13,13 +26,47 @@ def plot_raw_samples():
     samples_raw = dataset_raw_npz['data_raw']
     
     
-    for name, data in zip(samples_name, samples_raw):      
-       
-        plt.figure()
-        plt.plot(range(len(data)), data)
+    for name, data in zip(samples_name, samples_raw):   
+
+        plt.figure(figsize=(8,4.5))
+        for i in range(int(len(data)/2560)):
+            x = np.linspace(10*i, 10*i+0.1, 2560)/3600
+            plt.plot(x, data[i*2560:(i+1)*2560], c='C0', linewidth=0.5)
+        plt.xlabel('Operation time [hours]')
+        plt.ylabel('Acceleration [g]')
         plt.title(name)
-# plot_raw_samples()   
+plot_raw_samples()   
+
+
+
+def plot_sample_len_dist():
+    dataset_raw_npz = dict(np.load(os.path.join('processed_data', 'FEMTO_raw_samples.npz'), allow_pickle=True))    
+    lens = [len(i)/(360*2560) for i in dataset_raw_npz['data_raw']]
+    
+    plt.figure(figsize=(5,5))
+    plt.hist(lens, bins=10)
+    plt.xlabel('Operation time [hours]')
+    plt.ylabel('Acceleration [g]')
+    plt.title('FEMTO sample lifetimes distribution')
+    plt.savefig(os.path.join('plots', 'lifetime_dist'), dpi=500,
+                bbox_inches='tight', pad_inches=0)
+# plot_sample_len_dist()   
   
+
+def plot_ms_iters():
+    plt.close('all')
+    plt.figure()
+    dataset_npz = dict(np.load(os.path.join('processed_data', 'FEMTO_dataset.npz'), allow_pickle=True))    
+    ms_iter = dataset_npz['ms_iter']
+    plt.plot(ms_iter/np.max(ms_iter))
+    plt.xlim((0))
+    plt.ylim((0,1.1))
+    plt.grid(dashes=(1,1))
+    plt.xlabel('Number of iterations')
+    plt.ylabel('MS proportion with respect to dataset')        
+    plt.savefig(os.path.join('plots','MS_prop'), bbox_inches='tight', pad_inches=0)
+# plot_ms_iters()
+
 
 def plot_md_datasets():
     dataset_npz = dict(np.load(os.path.join('processed_data', 'FEMTO_dataset.npz'), allow_pickle=True))    
@@ -28,7 +75,8 @@ def plot_md_datasets():
     samples_name = dataset_npz['data_names']
    
     plt.close('all')
-    fig, axs = plt.subplots(5,3, figsize=(10,15), constrained_layout=True)
+    # fig, axs = plt.subplots(5,3, figsize=(10,15), constrained_layout=True)
+    fig, axs = plt.subplots(3,5, figsize=(16,6), constrained_layout=True)
     axs = axs.flat
     for i, name in enumerate(samples_name):
         sample = x_md[i]
@@ -42,14 +90,57 @@ def plot_md_datasets():
         axs[i].axvline(deg_ind, c='C0')
         axs[i].text(0.35, 0.85, name, 
                   fontsize=10, bbox=dict(facecolor='white', alpha=1, edgecolor='white'), transform=axs[i].transAxes)
-        if i in [0,3,6,9,12]:
+        if i in [0,5,10]: #[0,3,6,9,12]:
             axs[i].set_ylabel('Mahalanobis distance')
-        if i in [1,4,7,10,13]:
+        if i in [2,7,12]: #[1,4,7,10,13]:
             axs[i].set_xlabel('Feature measurement N°')
     
     fig.savefig(os.path.join('plots', 'MD_dataset'), dpi=500,
                 bbox_inches='tight', pad_inches=0)
-plot_md_datasets()
+# plot_md_datasets()
+
+
+
+def plot_RUL_samples():
+    results_dir = os.path.join(os.getcwd(), 'training_results', dataset, model)
+    samples = [i for i in os.listdir(results_dir) if 'Bearing' in i ]
+    
+    plt.close('all')
+    # fig, axs = plt.subplots(5,3, figsize=(10,15), constrained_layout=True)
+    fig, axs = plt.subplots(3,5, figsize=(16,6), constrained_layout=True)
+    axs = axs.flat
+    for i, name in enumerate(samples):
+        res_rmse = pd.read_csv(os.path.join(results_dir, name, name+'.csv'))
+        best_model_name = 'model_'+str(res_rmse.iloc[res_rmse[' RMSE'].idxmin(),0])+'_results.npz'
+        res_data = np.load(os.path.join(results_dir, name, best_model_name),allow_pickle=True)
+        
+        sample_true = res_data['y_true']
+        sample_pred = res_data['y_pred']
+        sample_rmse = np.sqrt(np.mean(np.power(sample_true - sample_pred, 2)))
+
+
+        axs[i].plot(np.arange(1, len(sample_true)+1,1), sample_true[::-1], label='True RUL')    
+        axs[i].plot(np.arange(1, len(sample_true)+1,1), sample_pred[::-1], 'r', label='Predicted RUL')
+        if np.max(sample_true)> np.min(sample_pred):
+            axs[i].set_ylim(0, 1.2*np.max(sample_true))
+        else:
+            axs[i].set_ylim(0, 1.2*np.max(sample_pred))
+            
+        # axs[i].set_title(name)
+        # axs[i].text(0.65, 0.7, 'Sample RMSE '+'{:.2f}'.format(sample_rmse), 
+        #          fontsize=10, bbox=dict(facecolor='green', alpha=0.3), transform=plt.gca().transAxes)
+        
+        axs[i].text(0.35, 0.85, name, 
+                  fontsize=10, bbox=dict(facecolor='white', alpha=0, edgecolor='white'), transform=axs[i].transAxes)        
+        if i in [0,5,10]: #[0,3,6,9,12]:
+            axs[i].set_ylabel('RUL [s]')
+        if i in [2,7,12]: #[1,4,7,10,13]:
+            axs[i].set_xlabel('Operating time [s]')
+    
+    fig.savefig(os.path.join('plots', 'RUL_predictions'), dpi=500,
+                bbox_inches='tight', pad_inches=0)
+# plot_RUL_samples()
+
 
 
 def spectrograms():
@@ -61,7 +152,7 @@ def spectrograms():
     sample = sample[:, -spec_timestep*6:]
     
     fig, ax = plt.subplots(figsize=(10,4))
-    im = ax.imshow(sample)
+    ax.imshow(sample)
     ax.invert_yaxis()
 
     fig.tight_layout()
@@ -69,82 +160,3 @@ def spectrograms():
     fig.savefig(os.path.join('plots', 'spectogram'), dpi=500,
                 bbox_inches='tight', pad_inches=0)
 # spectrograms()
-
-#dataset = np.load('FEMTO_raw_samples.npz', allow_pickle=True)
-#raw_data = dataset['data_raw']
-#rul_data = dataset['data_rul']
-#
-#sample = 0
-#
-#sample_data = raw_data[sample]
-#sample_rul = rul_data[sample]
-#
-#plt.figure(figsize=(12,4))
-#plt.plot(sample_rul[::-1]/3600, sample_data)
-#plt.xlabel('Time [hours]')
-#plt.ylabel('Vertical acceleration [g]')
-#plt.grid()
-#plt.savefig(os.path.join('images', 'vertical_vib_sample'+str(sample)))
-
-#
-##DBSCAN parameters
-#cluster_radius = 0.01
-#min_cluster_points = 1000
-#
-##Degradation detection parameters
-#n_conditions = 4
-#conditions_time_window = 6
-#
-#data_set = np.load('FEMTO_processed_samples.npz',  allow_pickle=True)
-#dbscan_cluster = fun.DBSCAN_degradation_start(data_set['data_features'])
-#dbscan_cluster.fit_predict(cluster_radius, min_cluster_points)
-#
-#indx_start = dbscan_cluster.degradation_start(n_conditions, conditions_time_window)
-#dbscan_cluster.cluster_plot(save_fig=True)
-#dbscan_cluster.degradation_start_per_sample()
-#
-#for i in range(len(data_set['data_features'])):
-#    dbscan_cluster.sample_plot(i, 1, 'Maximum acceleration', save_fig=True)
-
-
-# def image_zoom(array, y_factor, x_factor):
-#     y_dim, x_dim = array.shape
-#     zoomed_array = np.zeros((int(y_factor*y_dim), int(x_factor*x_dim)))
-    
-#     for i in range(y_dim):
-#         for j in range(x_dim):
-#             i_ind_1 = i*y_factor
-#             i_ind_2 = (i+1)*y_factor   
-#             j_ind_1 = j*x_factor
-#             j_ind_2 = (j+1)*x_factor    
-#             zoomed_array[i_ind_1:i_ind_2, j_ind_1:j_ind_2] = array[i,j]
-            
-#     return zoomed_array
-    
- 
-# dataset = np.load(os.path.join('processed_data','FEMTO_dataset.npz'), allow_pickle=True)
-# x_data = dataset['x_data']
-
-
-# scaler_x = functions.MinMaxScaler(feature_range=(0,1), feature_axis=1)
-# scaler_x.fit_transform(np.concatenate(x_data))
-
-# for i in range(1):
-#     print(i)
-#     sample_spec = x_data[i] #scaler_x.transform(x_data[i])
-#     t,n,h,w,c = sample_spec.shape
-#     super_spec = np.concatenate(sample_spec[:,-1], axis=1)[:,:,0]
-#     print(super_spec.shape)
-#     zoomed_spec = image_zoom(super_spec, 10, 10)
-#     plt.figure(figsize=(10,2))
-#     plt.contourf(zoomed_spec, levels=100, cmap='inferno')
-#     cbar = plt.colorbar(format='%.2f')
-#     cbar.ax.set_ylabel('Frequency intensity')
-#     plt.savefig(os.path.join('images','spectogram_'+str(i)), bbox_inches='tight', pad_inches=0)
-
-#
-#sample_spec = sample_spec[-1][:,:,0]
-#zoomed_spec = image_zoom(sample_spec, 10, 10)
-#
-#plt.figure()
-#plt.contourf(zoomed_spec, levels=100)

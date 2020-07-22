@@ -1,16 +1,16 @@
 import os
 import numpy as np 
 import matplotlib.pyplot as plt
+from utils.data_processing import MinMaxScaler
 
 
+plt.close('all')
 DATASETS = ['FD001', 'FD002', 'FD003', 'FD004']
 RAW_NPZ = dict(np.load(os.path.join('processed_data', 'CMAPSS_raw.npz'), allow_pickle=True))
 MD_NPZ = dict(np.load(os.path.join('processed_data', 'CMAPSS_MD_dataset.npz'), allow_pickle=True))
 
 
-
 def plot_lifetime_distribution():
-    plt.close('all')
     
     for dataset in DATASETS:
         train_lens = []
@@ -28,13 +28,13 @@ def plot_lifetime_distribution():
         print('Test set mean lifetime', "{:.2f}".format(np.mean(test_lens)))
                         
         plt.figure()
-        n, bins, patches = plt.hist(train_lens, 20, density=False, facecolor='b', alpha=0.5, label='Train set')
-        n, bins, patches = plt.hist(test_lens, bins, density=False, facecolor='r', alpha=0.5, label='Test set')    
+        n, bins, patches = plt.hist(train_lens, 20, density=False, facecolor='C0', alpha=0.5, label='Train set')
+        n, bins, patches = plt.hist(test_lens, bins, density=False, facecolor='C1', alpha=0.5, label='Test set')    
         
-        plt.xlabel('Total engine lifetime '+dataset)
+        plt.xlabel('Total engine lifetime')
         plt.ylabel('Number of samples')
+        plt.title(dataset)
         plt.xlim(10, 550)
-        plt.grid(True)
         plt.text(0.55, 0.78, 'Train set mean lifetime '+'{:.2f}'.format(np.mean(train_lens)), 
                  fontsize=10, bbox=dict(facecolor='green', alpha=0.3), transform=plt.gca().transAxes)
         plt.text(0.55, 0.7, 'Test set mean lifetime '+'{:.2f}'.format(np.mean(test_lens)), 
@@ -47,7 +47,6 @@ def plot_lifetime_distribution():
 
 def plot_md_DATASETS():
 
-    plt.close('all')
     for dataset in DATASETS:
         for set_name in ['train', 'test']:
             data = MD_NPZ[dataset][()]
@@ -88,7 +87,6 @@ def plot_md_DATASETS():
 
 def plot_md_longest_shortest_samples_train():
 
-    plt.close('all')
     for dataset in DATASETS:
         data = MD_NPZ[dataset][()]
         x_md = data['x_train_md']
@@ -135,7 +133,6 @@ def plot_md_longest_shortest_samples_train():
 
 def plot_md_longest_deg_undeg_test():
 
-    plt.close('all')
     for dataset in DATASETS:
         data = MD_NPZ[dataset][()]
         x_md = data['x_test_md']
@@ -173,7 +170,7 @@ def plot_md_longest_deg_undeg_test():
             plt.text(0.05, 0.85, 'Threshold MD: {:.2f}'.format(threshold), 
                      fontsize=10, bbox=dict(facecolor='yellow', alpha=0.3), transform=plt.gca().transAxes)
     
-            plt.text(0.45, 0.9, 'Train set', fontsize=14, transform=plt.gca().transAxes)            
+            plt.text(0.42, 0.9, dataset + ' test set', fontsize=12, transform=plt.gca().transAxes)            
             plt.axhline(threshold, c='k')
             plt.xlabel('Operational cycles')
             plt.ylabel('Mahalanobis distance')
@@ -184,7 +181,6 @@ def plot_md_longest_deg_undeg_test():
 
 def plot_ms_iters():
 
-    plt.close('all')
     plt.figure()
     for dataset in DATASETS:
         data = MD_NPZ[dataset][()]
@@ -197,12 +193,11 @@ def plot_ms_iters():
     plt.xlabel('Number of iterations')
     plt.ylabel('MS proportion with respect to dataset')        
     plt.savefig(os.path.join('plots','MD_results','MS_prop'), bbox_inches='tight', pad_inches=0)
-plot_ms_iters()
+# plot_ms_iters()
 
 
 def plot_traing_set_size_change():
  
-    plt.close('all')
     for dataset in DATASETS:
         data = MD_NPZ[dataset][()]
         x_md = data['x_train_md']
@@ -229,3 +224,23 @@ def plot_traing_set_size_change():
         plt.savefig(os.path.join('plots', 'MD_results',dataset+'_training_set_rul_dist'), dpi=500,
                     bbox_inches='tight', pad_inches=0)
 # plot_traing_set_size_change()
+
+
+def input_image():
+    
+    dataset_npz = dict(np.load(os.path.join('processed_data', 'CMAPSS_dataset.npz'), allow_pickle=True))   
+    x_train = dataset_npz['FD001'][()]['x_train']
+    
+    scaler_x = MinMaxScaler(feature_range=(0,1), feature_axis=2)
+    x_train = [scaler_x.fit_transform(i, verbose=False) for i in x_train]
+    sample = x_train[0][0,:,:,0]   
+    
+    fig, ax = plt.subplots(figsize=(10,4))
+    ax.imshow(sample, cmap='Greys')
+    ax.invert_yaxis()
+
+    fig.tight_layout()
+    plt.show()
+    fig.savefig(os.path.join('plots', 'input_image'), dpi=500,
+                bbox_inches='tight', pad_inches=0)
+# input_image()

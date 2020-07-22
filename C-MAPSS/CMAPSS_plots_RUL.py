@@ -34,6 +34,7 @@ def RUL_RMSE_stats_non_degraded_samples():
 # RUL_RMSE_stats_non_degraded_samples()
 
 
+
 def RUL_RMSE_stats():
     dataset_name = 'CMAPSS_unfiltered'
     results_dir = os.path.join(os.getcwd(), 'training_results', dataset_name, model)
@@ -53,7 +54,6 @@ def longest_sample_RUL_prediction():
         
         res_rmse = pd.read_csv(os.path.join(results_dir, sub_dataset, sub_dataset+'.csv'))
         best_model_name = 'model_'+str(res_rmse.iloc[res_rmse[' RMSE'].idxmin(),0])+'_results.npz'
-        print(best_model_name)
         res_data = np.load(os.path.join(results_dir, sub_dataset, best_model_name),allow_pickle=True)
         
         y_true = res_data['y_true']
@@ -140,3 +140,38 @@ def dataset_RUL_prediction():
         plt.savefig(os.path.join('plots','RUL_results',sub_dataset+'_all_RUL.png'),
                     bbox_inches='tight', pad_inches=0)
 # dataset_RUL_prediction()
+
+
+def dataset_unfiltered_RUL_prediction():
+    dataset_name = 'CMAPSS_unfiltered'
+    results_dir = os.path.join(os.getcwd(), 'training_results', dataset_name, model)
+    
+    for sub_dataset in ['FD001','FD002','FD003','FD004']:
+        res_rmse = pd.read_csv(os.path.join(results_dir, sub_dataset, sub_dataset+'.csv'))
+        best_model_name = 'model_'+str(res_rmse.iloc[res_rmse[' RMSE'].idxmin(),0])+'_ignored_samples_results.npz'
+        res_data = np.load(os.path.join(results_dir, sub_dataset, best_model_name),allow_pickle=True)
+        
+        y_true = res_data['y_true']
+        y_pred = res_data['y_pred']
+
+        plt.figure()
+        for i in range(len(y_true)):
+            plt.plot(np.arange(np.min(y_true[i]),np.max(y_true[i])+1,1), y_true[i], 'C0')    
+            plt.plot(np.arange(np.min(y_true[i]),np.max(y_true[i])+1,1), y_pred[i], 'r')
+        plt.xlabel('Remaining Useful Life')
+        plt.ylabel('Remaining Useful Life')
+        
+        plt.legend(('True RUL', 'Predicted RUL'), loc='upper right', framealpha=1)
+        ax = plt.gca()
+        ax.invert_xaxis()
+        leg = ax.get_legend()
+        leg.legendHandles[0].set_color('C0')
+        leg.legendHandles[0].set_alpha(1)
+        leg.legendHandles[0].set_linewidth(2)
+        leg.legendHandles[1].set_color('r')
+        leg.legendHandles[1].set_alpha(1)
+        leg.legendHandles[1].set_linewidth(2)
+
+        plt.savefig(os.path.join('plots','RUL_results',sub_dataset+'_undegraded_samples_RUL.png'),
+                    bbox_inches='tight', pad_inches=0)
+dataset_unfiltered_RUL_prediction()

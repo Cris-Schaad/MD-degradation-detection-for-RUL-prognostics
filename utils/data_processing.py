@@ -10,13 +10,14 @@ class MinMaxScaler():
         self.max = feature_range[1]
         self.feature_axis = feature_axis
     
-    def fit_transform(self, x_data):
+    def fit_transform(self, x_data, verbose=True):
         
         t_data = []
         x_data_min = []
         x_data_max = []
-
-        print('Number of independent variables to scale: ', x_data.shape[self.feature_axis])
+        
+        if verbose:
+            print('Number of independent variables to scale: ', x_data.shape[self.feature_axis])
         for i in range(x_data.shape[self.feature_axis]):
             x = x_data.take(i, axis=self.feature_axis)
             x_min = np.min(x)

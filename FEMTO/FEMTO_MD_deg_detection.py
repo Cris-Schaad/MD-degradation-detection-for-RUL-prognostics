@@ -39,7 +39,9 @@ threshold = iterator.threshold
 for i, sample in enumerate(x_data_md):
     test_deg = deg_start[i]
         
-    print(dataset_names[i]+' sample RUL: {:.0f}'.format(len(sample)-test_deg))    
+    print(dataset_names[i]+' sample deg. start: {:.0f}'.format(10*test_deg))    
+    print(dataset_names[i]+' sample RUL: {:.0f}'.format(10*(len(sample)-test_deg)))    
+    print(dataset_names[i]+' sample lifetime after deg: {:.1f}\n'.format(100*(len(sample)-test_deg)/len(sample)))    
     plt.figure()
     plt.plot(sample)
     plt.axhline(threshold, c='C1')
@@ -54,23 +56,27 @@ x_data = samples_reverse(x_data)
 
 for i in range(len(x_data)):
     x_data[i] = x_data[i][skip:]
-    
-    
-# Sampling from degradation start index
-deg_start_ind = [i//features_per_timestep for i in deg_start]
-y_data = np.asarray([np.expand_dims(10*np.linspace(len(i), 1, len(i)), axis=1) for i in x_data])
-x_data, y_data = iterator.detector.sampling_from_index(x_data, y_data, deg_start_ind, time_window)
-
-    
+ 
 # Sequence of images
+y_data = np.asarray([np.expand_dims(10*np.linspace(len(i), 1, len(i)), axis=1) for i in x_data])
 x_data, y_data = time_window_sampling(x_data, y_data, time_window)
 
 
-
+# Saving
+np.savez(os.path.join('processed_data', 'FEMTO_unfiltered_dataset.npz'),
+        x_data = x_data,
+        y_data = y_data,
+        data_names = dataset_names)
+    
+# Sampling from degradation start index
+deg_start_ind = [i//features_per_timestep for i in deg_start]
+x_data, y_data = iterator.detector.sampling_from_index(x_data, y_data, deg_start_ind, 0)
+    
 # Saving
 np.savez(os.path.join('processed_data', 'FEMTO_dataset.npz'),
         x_data = x_data,
         y_data = y_data,
         x_data_md = x_data_md,
         x_deg_start = deg_start, 
-        data_names = dataset_names)
+        data_names = dataset_names,
+        ms_iter = np.asarray(iterator.iter_ms_dim))

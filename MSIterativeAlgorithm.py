@@ -45,7 +45,7 @@ class Detector():
 
 class MSIterativeAlgorithm():
     
-    def __init__(self, k, n, sigma,
+    def __init__(self, k, n, threshold,
                  tolerance=0,
                  max_iter=500):
         """
@@ -56,18 +56,18 @@ class MSIterativeAlgorithm():
         
         self.m_d = MahalanobisDistance(mode='covariance')
         self.detector = Detector(k, n)
-        self.s = sigma
+        self.threshold = threshold
         
         self.iter_ms_dim = []
         self.tol = tolerance
         self.max_iter = max_iter        
         
         
-    def iterative_calculation(self, x, n_iterations=10, verbose=True):
+    def iterative_calculation(self, x, n_iterations=10, verbose=True, plot_dist_change=True):
 
         # Initialy all instances are in the MS
         ms_index = [np.arange(0, len(sample), 1) for sample in x]        
-        
+
         # Iterativa algorithm
         for i in range(self.max_iter):
             if verbose:
@@ -79,38 +79,34 @@ class MSIterativeAlgorithm():
             x_md = self.md_calculation_op(x)    
             ms = np.concatenate([sample[ms_index[ind]] for ind, sample in enumerate(x_md)])
             
-            # Normalizing distribution
-            ms = np.log(ms)
-            ms = (ms - np.mean(ms))/np.std(ms)
-            self.threshold = np.mean(ms) + self.s*np.std(ms)            
-            
             # Degradation start detection
             for ind, md_sample in enumerate(x_md):
-                deg_start = self.detector.detect(md_sample, self.threshold)
+                deg_start = self.detector.detect(np.log(md_sample), np.log(self.threshold))
                 ms_index[ind] = np.arange(0, deg_start, 1)              
                 
             # Algorithm convergence check
-            self.iter_ms_dim.append(len(ms))            
+            self.iter_ms_dim.append(len(ms))     
+            if i == 0:
+                x_md_original = x_md
             if i > 0: 
                 if np.abs((self.iter_ms_dim[i-1] - self.iter_ms_dim[i]))/self.iter_ms_dim[i-1] <= self.tol:
                     break
-            
             if i == self.max_iter-1:
                 print('Max iterations ({:}) reached'.format(self.max_iter))
         
-        plt.figure()
-        plt.hist(np.concatenate([sample[ms_index[ind]] for ind, sample in enumerate(x_md)]),
-                 bins=100, alpha=0.5, density=True)
-        
-        plt.hist(np.concatenate([sample[ms_index[ind][-1]:] for ind, sample in enumerate(x_md)]), 
-                 bins=100, alpha=0.5, density=True)
-        plt.hist(np.concatenate([sample[-2:] for ind, sample in enumerate(x_md)]), 
-                 bins=20, alpha=0.5, density=True)
+        if plot_dist_change:
+            plt.figure()            
+            plt.hist(np.concatenate(x_md_original),
+                     bins=np.linspace(0,5,1000), color='C0', alpha=0.3, density=True, label='Initial distribution')
+            plt.hist(np.concatenate([sample[ms_index[ind]] for ind, sample in enumerate(x_md)]),
+                     bins=np.linspace(0,5,1000), color='C2', alpha=0.3, density=True, label='MS')
+            plt.hist(np.concatenate([sample[ms_index[ind][-1]:] for ind, sample in enumerate(x_md)]), 
+                     bins=np.linspace(0,5,1000), color='r', alpha=0.3, density=True, label='MS outsiders')
+            plt.legend()
+            plt.savefig(os.path.join('plots', 'MS_dist_change'), bbox_inches='tight', pad_inches=0)
         
         print('\tCovergence at iter: {}'.format(len(self.iter_ms_dim)))                     
-        print('\tMean MD in MS: {:.2f}'.format(np.mean(ms)))
-        print('\tThreshold: {:.2f}'.format(self.threshold))       
-        print('\tMS proportion: {:.2f}%\n'.format(100*len(ms)/len(np.concatenate(x))))       
+        print('\tMS proportion: {:.2f}%\n'.format(100*self.iter_ms_dim[-1]/len(np.concatenate(x))))       
         
         for ind, md_sample in enumerate(x_md):
             self.detector.detect(md_sample, self.threshold, verbose=True)    
