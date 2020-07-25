@@ -18,7 +18,7 @@ DATA_DIR = 'processed_data'
 
 #Degradation detector parameters
 k = 5; n = 5
-sigmas = [1.03, 1.04, 1.08, 1.06]
+sigmas = [2, 3, 3, 3.5]
 
 
 def MD_calculation_CMAPSS():

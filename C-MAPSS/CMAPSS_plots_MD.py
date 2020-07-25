@@ -82,7 +82,7 @@ def plot_md_DATASETS():
             plt.ylim((0,8))
             plt.savefig(os.path.join('plots','MD_results',set_name+'_md_'+dataset), dpi=500,
                         bbox_inches='tight', pad_inches=0)
-# plot_md_DATASETS()
+plot_md_DATASETS()
 
 
 def plot_md_longest_shortest_samples_train():

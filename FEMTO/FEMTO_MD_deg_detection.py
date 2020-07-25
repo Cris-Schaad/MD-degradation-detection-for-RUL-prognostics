@@ -27,7 +27,7 @@ for i in range(len(x_data)):
 time_window = 6
 
 #Degradation detector
-k = 3; n = 3; sigma = 1.6
+k = 3; n = 3; sigma = 4
 
 iterator = MSIterativeAlgorithm(k, n, sigma)
 iterator.iterative_calculation(x_data, verbose=False)

@@ -35,7 +35,7 @@ def plot_raw_samples():
         plt.xlabel('Operation time [hours]')
         plt.ylabel('Acceleration [g]')
         plt.title(name)
-plot_raw_samples()   
+# plot_raw_samples()   
 
 
 
@@ -54,7 +54,6 @@ def plot_sample_len_dist():
   
 
 def plot_ms_iters():
-    plt.close('all')
     plt.figure()
     dataset_npz = dict(np.load(os.path.join('processed_data', 'FEMTO_dataset.npz'), allow_pickle=True))    
     ms_iter = dataset_npz['ms_iter']
@@ -74,7 +73,6 @@ def plot_md_datasets():
     x_deg_start = dataset_npz['x_deg_start']
     samples_name = dataset_npz['data_names']
    
-    plt.close('all')
     # fig, axs = plt.subplots(5,3, figsize=(10,15), constrained_layout=True)
     fig, axs = plt.subplots(3,5, figsize=(16,6), constrained_layout=True)
     axs = axs.flat
@@ -102,6 +100,7 @@ def plot_md_datasets():
 
 
 def plot_RUL_samples():
+    dataset = 'FEMTO'
     results_dir = os.path.join(os.getcwd(), 'training_results', dataset, model)
     samples = [i for i in os.listdir(results_dir) if 'Bearing' in i ]
     
@@ -119,8 +118,8 @@ def plot_RUL_samples():
         sample_rmse = np.sqrt(np.mean(np.power(sample_true - sample_pred, 2)))
 
 
-        axs[i].plot(np.arange(1, len(sample_true)+1,1), sample_true[::-1], label='True RUL')    
-        axs[i].plot(np.arange(1, len(sample_true)+1,1), sample_pred[::-1], 'r', label='Predicted RUL')
+        axs[i].plot(10*np.arange(1, len(sample_true)+1,1), sample_true[::-1], label='True RUL')    
+        axs[i].plot(10*np.arange(1, len(sample_true)+1,1), sample_pred[::-1], 'r', label='Predicted RUL')
         if np.max(sample_true)> np.min(sample_pred):
             axs[i].set_ylim(0, 1.2*np.max(sample_true))
         else:
@@ -137,9 +136,9 @@ def plot_RUL_samples():
         if i in [2,7,12]: #[1,4,7,10,13]:
             axs[i].set_xlabel('Operating time [s]')
     
-    fig.savefig(os.path.join('plots', 'RUL_predictions'), dpi=500,
+    fig.savefig(os.path.join('plots', 'RUL_predictions_'+dataset), dpi=500,
                 bbox_inches='tight', pad_inches=0)
-# plot_RUL_samples()
+plot_RUL_samples()
 
 
 
