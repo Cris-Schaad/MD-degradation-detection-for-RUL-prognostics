@@ -18,7 +18,7 @@ DATA_DIR = 'processed_data'
 
 #Degradation detector parameters
 k = 5; n = 5
-sigmas = [2, 3, 3, 3.5]
+sigmas = [0.35, 0.45, 0.65, 0.55]
 
 
 def MD_calculation_CMAPSS():
@@ -30,7 +30,8 @@ def MD_calculation_CMAPSS():
             
         sigma = sigmas[i]
         iterator = MSIterativeAlgorithm(k, n, sigma)
-        iterator.iterative_calculation(x_train, verbose=False)
+        iterator.iterative_calculation(x_train, verbose=False,
+                                       plot_name='MS_dist_change_'+dataset)
         
         iterator.RUL_info(x_train, y_train, plot=False)
         iterator.RUL_info(x_test, y_test, plot=False)
@@ -77,7 +78,6 @@ def sample_CMAPSS_by_MD():
                                    'y_train':y_train,
                                    'x_test': x_test, 
                                    'y_test': y_test}
-        
         
         #Unfiltered data
         _, _, x_test, y_test = load_CMAPSS_dataset(dataset, DATA_DIR)

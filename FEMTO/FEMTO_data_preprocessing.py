@@ -23,8 +23,9 @@ def raw_to_npz():
         vib_files = np.asarray([i for i in data_files if 'acc' in i])
         vib_files.sort()
         
-        sample_data = []    
-        for file in vib_files:
+        sample_data = []   
+        ignore_files = 0# 6*30
+        for file in vib_files[ignore_files:]:
             dataframe = pd.read_csv(os.path.join(folder, sample, file), header=None)
             data_segment = np.asarray(dataframe.iloc[:,4])
 
@@ -40,7 +41,7 @@ def raw_to_npz():
     np.savez(os.path.join('processed_data', 'FEMTO_raw_samples.npz'),
              data_raw = raw_samples,
              name = sample_name)            
-# raw_to_npz()
+raw_to_npz()
 
 
 def data_to_spectograms():

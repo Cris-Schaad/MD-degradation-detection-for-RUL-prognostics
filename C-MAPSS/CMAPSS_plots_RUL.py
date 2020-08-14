@@ -36,7 +36,7 @@ def RUL_RMSE_stats_non_degraded_samples():
 
 
 def RUL_RMSE_stats():
-    dataset_name = 'CMAPSS_unfiltered'
+    dataset_name = 'CMAPSS'
     results_dir = os.path.join(os.getcwd(), 'training_results', dataset_name, model)
 
     for sub_dataset in ['FD001','FD002','FD003','FD004']:
@@ -83,6 +83,62 @@ def longest_sample_RUL_prediction():
 # longest_sample_RUL_prediction()        
 
 
+def FD004_cases_RUL():
+        
+    res_rmse = pd.read_csv(os.path.join(results_dir, 'FD004', 'FD004.csv'))
+    best_model_name = 'model_'+str(res_rmse.iloc[res_rmse[' RMSE'].idxmin(),0])+'_results.npz'
+    res_data = np.load(os.path.join(results_dir, 'FD004', best_model_name),allow_pickle=True)
+    
+    y_true = res_data['y_true']
+    y_pred = res_data['y_pred']
+            
+    md_data = np.load(os.path.join('processed_data', 'CMAPSS_md_dataset.npz'), allow_pickle=True)['FD004'][()]
+    x_md = md_data['x_test_md']
+    x_ds = md_data['test_deg']
+    threshold = md_data['threshold']
+    md_ind = [i for i, x in enumerate(x_md) if x_ds[i] < len(x) -1]  
+
+
+    indexes = []
+    # Longest RUL sample
+    test_lens =  [len(y) for y in y_pred]
+    indexes.append(np.argwhere(test_lens == np.max(test_lens))[0][0])
+    
+    # Random regeneration
+    pred_ruls = [np.min(y[150:]) if len(y)>150 else np.inf for y in y_pred]
+    indexes.append(np.argwhere(pred_ruls == np.min(pred_ruls))[0][0])
+    
+    for ind in indexes:
+        sample_true = y_true[ind]
+        sample_pred = y_pred[ind]
+        sample_rmse = rmse_eval(sample_true, sample_pred)
+
+        md_sample = x_md[md_ind[ind]]
+        no_deg_sample = md_sample[:x_ds[md_ind[ind]]]
+        deg_sample = md_sample[x_ds[md_ind[ind]]:]
+        
+        fig, ax = plt.subplots(2,1, figsize=(7,7))
+        ax.flat
+                
+        ax[0].plot(x_ds[md_ind[ind]]+np.arange(1, len(sample_true)+1,1), sample_true[::-1], label='True RUL')    
+        ax[0].plot(x_ds[md_ind[ind]]+np.arange(1, len(sample_true)+1,1), sample_pred[::-1], 'r', label='Predicted RUL')
+        ax[0].set_xlim(xmin=-5)
+        ax[0].set_ylabel('RUL')       
+        ax[0].legend()
+        
+        ax[1].plot(range(len(no_deg_sample)), no_deg_sample, color='g')
+        ax[1].plot(range(len(no_deg_sample), len(no_deg_sample)+len(deg_sample)), deg_sample, color='r')  
+        ax[1].axhline(threshold, c='k', label='MD threshold')
+        ax[1].set_xlim(xmin=-5)
+        ax[1].set_xlabel('Operational cycles')
+        ax[1].set_ylabel('MD')
+        ax[1].legend()
+
+        fig.savefig(os.path.join('plots','FD004_samples_{}.png'.format(md_ind[ind]+1)),
+                    bbox_inches='tight', pad_inches=0)
+FD004_cases_RUL()      
+
+
 def end_RUL_prediction():
     for sub_dataset in ['FD001','FD002','FD003','FD004']:
         res_rmse = pd.read_csv(os.path.join(results_dir, sub_dataset, sub_dataset+'.csv'))
@@ -125,6 +181,10 @@ def dataset_RUL_prediction():
             plt.plot(np.arange(np.min(y_true[i]),np.max(y_true[i])+1,1), y_pred[i], 'r')
         plt.xlabel('Remaining Useful Life')
         plt.ylabel('Remaining Useful Life')
+        
+        if sub_dataset=='FD004':
+            plt.xlim(0,300)
+            plt.ylim(0,300)
         
         plt.legend(('True RUL', 'Predicted RUL'), loc='upper right', framealpha=1)
         ax = plt.gca()
@@ -174,4 +234,4 @@ def dataset_unfiltered_RUL_prediction():
 
         plt.savefig(os.path.join('plots','RUL_results',sub_dataset+'_undegraded_samples_RUL.png'),
                     bbox_inches='tight', pad_inches=0)
-dataset_unfiltered_RUL_prediction()
+# dataset_unfiltered_RUL_prediction()

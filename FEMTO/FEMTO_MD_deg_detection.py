@@ -12,22 +12,16 @@ from utils.data_processing import samples_reverse
 plt.close('all')
 data_set = np.load(os.path.join('processed_data', 'FEMTO_processed_samples.npz'),  allow_pickle=True)
 
-x_data = np.delete(data_set['data_features'], [9,11])
-x_spec = np.delete(data_set['data_spectograms'], [9,11])
-y_data = np.delete(data_set['data_rul'], [9,11])
+x_data = np.delete(data_set['data_features'], [1,9,11])
+x_spec = np.delete(data_set['data_spectograms'], [1,9,11])
+y_data = np.delete(data_set['data_rul'], [1,9,11])
 timestep_per_image = data_set['spec_timestep']
 features_per_timestep = data_set['feature_timestep']
-dataset_names = np.delete(data_set['name'], [9,11])
+dataset_names = np.delete(data_set['name'], [1,9,11])
 
-
-skip = 6*30
-for i in range(len(x_data)):
-    x_data[i] = x_data[i][skip*features_per_timestep:]
-
-time_window = 6
 
 #Degradation detector
-k = 3; n = 3; sigma = 4
+k = 4; n = 4; sigma = 2
 
 iterator = MSIterativeAlgorithm(k, n, sigma)
 iterator.iterative_calculation(x_data, verbose=False)
@@ -35,6 +29,7 @@ iterator.iterative_calculation(x_data, verbose=False)
 x_data_md = iterator.md_calculation_op(x_data)
 deg_start = iterator.detect_degradation_start(x_data, False)
 threshold = iterator.threshold
+
 
 for i, sample in enumerate(x_data_md):
     test_deg = deg_start[i]
@@ -54,13 +49,13 @@ x_data, y_data = time_window_sampling(x_spec, y_data, timestep_per_image,tempora
                                       time_step=timestep_per_image, add_last_dim=True)
 x_data = samples_reverse(x_data)
 
-for i in range(len(x_data)):
-    x_data[i] = x_data[i][skip:]
- 
+
 # Sequence of images
+time_window = 7
 y_data = np.asarray([np.expand_dims(10*np.linspace(len(i), 1, len(i)), axis=1) for i in x_data])
 x_data, y_data = time_window_sampling(x_data, y_data, time_window)
-
+x_data = samples_reverse(x_data)
+y_data = samples_reverse(y_data)
 
 # Saving
 np.savez(os.path.join('processed_data', 'FEMTO_unfiltered_dataset.npz'),
@@ -69,9 +64,10 @@ np.savez(os.path.join('processed_data', 'FEMTO_unfiltered_dataset.npz'),
         data_names = dataset_names)
     
 # Sampling from degradation start index
-deg_start_ind = [i//features_per_timestep for i in deg_start]
+deg_start_ind = [i//features_per_timestep - time_window for i in deg_start]
 x_data, y_data = iterator.detector.sampling_from_index(x_data, y_data, deg_start_ind, 0)
-    
+
+
 # Saving
 np.savez(os.path.join('processed_data', 'FEMTO_dataset.npz'),
         x_data = x_data,

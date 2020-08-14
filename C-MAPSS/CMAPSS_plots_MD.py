@@ -128,7 +128,7 @@ def plot_md_longest_shortest_samples_train():
             plt.ylabel('Mahalanobis distance')
             plt.savefig(os.path.join('plots', 'MD_results','train_'+name+'_len_md_'+dataset), dpi=500,
                         bbox_inches='tight', pad_inches=0)
-# plot_md_longest_shortest_samples_train()
+plot_md_longest_shortest_samples_train()
 
 
 def plot_md_longest_deg_undeg_test():
@@ -176,7 +176,7 @@ def plot_md_longest_deg_undeg_test():
             plt.ylabel('Mahalanobis distance')
             plt.savefig(os.path.join('plots', 'MD_results','test_longest_'+state+'_md_'+dataset), dpi=500,
                         bbox_inches='tight', pad_inches=0)
-# plot_md_longest_deg_undeg_test()
+plot_md_longest_deg_undeg_test()
 
 
 def plot_ms_iters():
@@ -193,37 +193,8 @@ def plot_ms_iters():
     plt.xlabel('Number of iterations')
     plt.ylabel('MS proportion with respect to dataset')        
     plt.savefig(os.path.join('plots','MD_results','MS_prop'), bbox_inches='tight', pad_inches=0)
-# plot_ms_iters()
+plot_ms_iters()
 
-
-def plot_traing_set_size_change():
- 
-    for dataset in DATASETS:
-        data = MD_NPZ[dataset][()]
-        x_md = data['x_train_md']
-        x_deg_start = data['train_deg']
-
-        
-        original_training_set_ruls = []
-        new_training_set_ruls = []
-        for i, sample in enumerate(x_md):
-            deg_ind = x_deg_start[i]
-            original_training_set_ruls.append(np.arange(0, len(sample),1))
-            new_training_set_ruls.append(np.arange(0, deg_ind+1, 1))
-            
-        original_training_set_ruls = np.concatenate(original_training_set_ruls)
-        new_training_set_ruls = np.concatenate(new_training_set_ruls)
-                        
-        plt.figure(figsize=(9,3))    
-        plt.hist(original_training_set_ruls, bins=100, range=(0,500), alpha=0.6, label='Training set RULs from op. start', color='r')
-        plt.hist(new_training_set_ruls, bins=100, range=(0,500), alpha=0.7, label='Training set RULs from deg. start', color='g')
-
-        plt.legend()
-        plt.xlabel('Lifetime flight cycles')
-        plt.ylabel('Number of samples')
-        plt.savefig(os.path.join('plots', 'MD_results',dataset+'_training_set_rul_dist'), dpi=500,
-                    bbox_inches='tight', pad_inches=0)
-# plot_traing_set_size_change()
 
 
 def input_image():

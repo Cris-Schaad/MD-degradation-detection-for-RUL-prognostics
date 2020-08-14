@@ -17,24 +17,31 @@ def RUL_RMSE_stats():
         print(sub_dataset+' min RMSE: {:.2f}'.format(np.min(data[' RMSE'])))
         print(sub_dataset+' mean RMSE: {:.2f}'.format(np.mean(data[' RMSE'])))
         print(sub_dataset+' std. RMSE: {:.2f}\n'.format(np.std(data[' RMSE'])))        
-# RUL_RMSE_stats()  
+RUL_RMSE_stats()  
 
 
 def plot_raw_samples():
     dataset_raw_npz = dict(np.load(os.path.join('processed_data', 'FEMTO_raw_samples.npz'), allow_pickle=True))    
     samples_name = dataset_raw_npz['name']
-    samples_raw = dataset_raw_npz['data_raw']
+    samples_raw_x = dataset_raw_npz['data_raw']
+    samples_raw_y = dataset_raw_npz['data_raw_y']
     
-    
-    for name, data in zip(samples_name, samples_raw):   
-
-        plt.figure(figsize=(8,4.5))
-        for i in range(int(len(data)/2560)):
+    fig, axs = plt.subplots(3,2, figsize=(12,8))
+    axs = axs.flat
+    for k, name in enumerate(['Bearing1_2', 'Bearing2_3', 'Bearing2_5']):   
+        indx = np.argwhere(samples_name == name).flatten()[0]
+        for i in range(int(len(samples_raw_x[indx])/2560)):
             x = np.linspace(10*i, 10*i+0.1, 2560)/3600
-            plt.plot(x, data[i*2560:(i+1)*2560], c='C0', linewidth=0.5)
-        plt.xlabel('Operation time [hours]')
-        plt.ylabel('Acceleration [g]')
-        plt.title(name)
+            axs[2*k].plot(x, samples_raw_x[indx][i*2560:(i+1)*2560], c='C0', linewidth=0.5)
+            axs[2*k+1].plot(x, samples_raw_y[indx][i*2560:(i+1)*2560], c='C0', linewidth=0.5)
+        axs[2*k].set_ylabel('Acceleration [g]')
+        axs[2*k].text(0.3, 0.9, name + ' Horizontal axis', fontsize=10, 
+                    bbox=dict(facecolor='white', alpha=0, edgecolor='white'), transform=axs[2*k].transAxes)
+        axs[2*k+1].text(0.3, 0.9, name + ' Vertical axis', fontsize=10, 
+                    bbox=dict(facecolor='white', alpha=0, edgecolor='white'), transform=axs[2*k+1].transAxes)
+    axs[2*k].set_xlabel('Operation time [hours]')
+    axs[2*k+1].set_xlabel('Operation time [hours]')
+    fig.savefig(os.path.join('plots', 'ignored_raw_samples'), dpi=500, bbox_inches='tight', pad_inches=0)
 # plot_raw_samples()   
 
 
@@ -57,8 +64,8 @@ def plot_ms_iters():
     plt.figure()
     dataset_npz = dict(np.load(os.path.join('processed_data', 'FEMTO_dataset.npz'), allow_pickle=True))    
     ms_iter = dataset_npz['ms_iter']
-    plt.plot(ms_iter/np.max(ms_iter))
-    plt.xlim((0))
+    plt.plot(np.arange(1, len(ms_iter)+1,1),ms_iter/np.max(ms_iter))
+    plt.xlim((1))
     plt.ylim((0,1.1))
     plt.grid(dashes=(1,1))
     plt.xlabel('Number of iterations')
@@ -72,9 +79,9 @@ def plot_md_datasets():
     x_md = dataset_npz['x_data_md']
     x_deg_start = dataset_npz['x_deg_start']
     samples_name = dataset_npz['data_names']
-   
-    # fig, axs = plt.subplots(5,3, figsize=(10,15), constrained_layout=True)
-    fig, axs = plt.subplots(3,5, figsize=(16,6), constrained_layout=True)
+    
+    # fig, axs = plt.subplots(3,5, figsize=(16,6), constrained_layout=True)
+    fig, axs = plt.subplots(7,2, figsize=(8,10), constrained_layout=True)
     axs = axs.flat
     for i, name in enumerate(samples_name):
         sample = x_md[i]
@@ -88,9 +95,9 @@ def plot_md_datasets():
         axs[i].axvline(deg_ind, c='C0')
         axs[i].text(0.35, 0.85, name, 
                   fontsize=10, bbox=dict(facecolor='white', alpha=1, edgecolor='white'), transform=axs[i].transAxes)
-        if i in [0,5,10]: #[0,3,6,9,12]:
-            axs[i].set_ylabel('Mahalanobis distance')
-        if i in [2,7,12]: #[1,4,7,10,13]:
+        if i in [0,2,4,6,8,10,12]: #[0,5,10]:
+            axs[i].set_ylabel('MD')
+        if i in [12,13]:
             axs[i].set_xlabel('Feature measurement N°')
     
     fig.savefig(os.path.join('plots', 'MD_dataset'), dpi=500,
@@ -105,9 +112,9 @@ def plot_RUL_samples():
     samples = [i for i in os.listdir(results_dir) if 'Bearing' in i ]
     
     plt.close('all')
-    # fig, axs = plt.subplots(5,3, figsize=(10,15), constrained_layout=True)
-    fig, axs = plt.subplots(3,5, figsize=(16,6), constrained_layout=True)
-    axs = axs.flat
+    # fig, axs = plt.subplots(3,5, figsize=(16,6), constrained_layout=True)
+    fig, axs = plt.subplots(7,2, figsize=(8,10), constrained_layout=True)
+    axs = axs.flat    
     for i, name in enumerate(samples):
         res_rmse = pd.read_csv(os.path.join(results_dir, name, name+'.csv'))
         best_model_name = 'model_'+str(res_rmse.iloc[res_rmse[' RMSE'].idxmin(),0])+'_results.npz'
@@ -118,27 +125,23 @@ def plot_RUL_samples():
         sample_rmse = np.sqrt(np.mean(np.power(sample_true - sample_pred, 2)))
 
 
-        axs[i].plot(10*np.arange(1, len(sample_true)+1,1), sample_true[::-1], label='True RUL')    
-        axs[i].plot(10*np.arange(1, len(sample_true)+1,1), sample_pred[::-1], 'r', label='Predicted RUL')
+        axs[i].plot(10*np.arange(1, len(sample_true)+1,1), sample_true, label='True RUL')    
+        axs[i].plot(10*np.arange(1, len(sample_true)+1,1), sample_pred, 'r', label='Predicted RUL')
         if np.max(sample_true)> np.min(sample_pred):
             axs[i].set_ylim(0, 1.2*np.max(sample_true))
         else:
             axs[i].set_ylim(0, 1.2*np.max(sample_pred))
-            
-        # axs[i].set_title(name)
-        # axs[i].text(0.65, 0.7, 'Sample RMSE '+'{:.2f}'.format(sample_rmse), 
-        #          fontsize=10, bbox=dict(facecolor='green', alpha=0.3), transform=plt.gca().transAxes)
-        
+
         axs[i].text(0.35, 0.85, name, 
                   fontsize=10, bbox=dict(facecolor='white', alpha=0, edgecolor='white'), transform=axs[i].transAxes)        
-        if i in [0,5,10]: #[0,3,6,9,12]:
+        if i in [0,2,4,6,8,10,12]: #[0,5,10]:
             axs[i].set_ylabel('RUL [s]')
-        if i in [2,7,12]: #[1,4,7,10,13]:
+        if i in [12,13]:
             axs[i].set_xlabel('Operating time [s]')
     
     fig.savefig(os.path.join('plots', 'RUL_predictions_'+dataset), dpi=500,
                 bbox_inches='tight', pad_inches=0)
-plot_RUL_samples()
+# plot_RUL_samples()
 
 
 
@@ -147,15 +150,25 @@ def spectrograms():
     specs = dataset_npz['data_spectograms']
     spec_timestep = dataset_npz['spec_timestep']
 
-    sample = specs[0]
-    sample = sample[:, -spec_timestep*6:]
+    for i in range(6):
+        sample = specs[0]
+        if i == 0:
+            sample = sample[:, -spec_timestep:]
+        else:
+            sample = sample[:, -(i+1)*spec_timestep:-(i)*spec_timestep]
+        
+        fig, ax = plt.subplots(figsize=(10,4))
+        ax.imshow(sample, cmap='inferno')
+        ax.invert_yaxis()
+        ax.set_xticks(np.asarray([0,9,19,29,39]))
+        ax.set_xticklabels(np.asarray([0,25,50,75,100]))
+        ax.set_xlabel('Time [ms]')
+        ax.set_yticks(np.arange(0, 33, 8))
+        ax.set_yticklabels(np.asarray([0,3.2,6.4,9.6,12.8]))
+        ax.set_ylabel('Frequency bands [kHz]')
     
-    fig, ax = plt.subplots(figsize=(10,4))
-    ax.imshow(sample)
-    ax.invert_yaxis()
-
-    fig.tight_layout()
-    plt.show()
-    fig.savefig(os.path.join('plots', 'spectogram'), dpi=500,
-                bbox_inches='tight', pad_inches=0)
+        fig.tight_layout()
+        plt.show()
+        fig.savefig(os.path.join('plots', 'spectogram_'+str(i+1)), dpi=500,
+                    bbox_inches='tight', pad_inches=0)
 # spectrograms()

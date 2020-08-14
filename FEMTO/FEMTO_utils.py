@@ -15,11 +15,16 @@ class FEMTO_importer():
     def get_train_set(self, test_sample, valid_size=0.1):
         x_train = np.delete(self.x_data, test_sample)
         y_train = np.delete(self.y_data, test_sample)
-  
-        x_train, x_valid, y_train, y_valid  = train_test_split(x_train, y_train, 
+        
+        
+        x_train, x_valid, y_train, y_valid  = train_test_split(np.concatenate(x_train), np.concatenate(y_train), 
                                                                test_size=valid_size,
                                                                random_state=0)
-        return np.concatenate(x_train), np.concatenate(x_valid), np.concatenate(y_train), np.concatenate(y_valid)
+        return x_train, x_valid, y_train, y_valid 
+        # x_train, x_valid, y_train, y_valid  = train_test_split(x_train, y_train, 
+        #                                                        test_size=valid_size,
+        #                                                        random_state=0)
+        # return np.concatenate(x_train), np.concatenate(x_valid), np.concatenate(y_train), np.concatenate(y_valid)
     
     
     def get_train_samples(self, test_sample):

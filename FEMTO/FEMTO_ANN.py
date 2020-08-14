@@ -13,7 +13,7 @@ from utils.training_functions import rmse_eval
 
 
 model_name = 'ConvLSTM'
-dataset_name = 'FEMTO'
+dataset_name = 'FEMTO_unfiltered'
 
 results_dir =  os.path.join(os.getcwd(), 'training_results', dataset_name, model_name)
 dataset_loader = FEMTO_importer(dataset_name)
@@ -35,10 +35,10 @@ params = {'convlstm_layers': 1,
         'ES_patience': 5}
 
 
-for sample, sample_name in enumerate(dataset_loader.data_names):
+for sample, sample_name in enumerate(dataset_loader.data_names[-7:]):
     print('\n'+sample_name)
     
-    x_train, x_valid, y_train, y_valid = dataset_loader.get_train_set(sample, valid_size=0.2)
+    x_train, x_valid, y_train, y_valid = dataset_loader.get_train_set(sample, valid_size=0.3)
     x_test, y_test = dataset_loader.get_test_sample(sample)
     
     scaler_x = MinMaxScaler(feature_range=(0,1), feature_axis=2)

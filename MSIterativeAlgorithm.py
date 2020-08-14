@@ -63,7 +63,8 @@ class MSIterativeAlgorithm():
         self.max_iter = max_iter        
         
         
-    def iterative_calculation(self, x, n_iterations=10, verbose=True, plot_dist_change=True):
+    def iterative_calculation(self, x, n_iterations=10, verbose=True, plot_dist_change=True, 
+                              plot_name='MS_dist_change'):
 
         # Initialy all instances are in the MS
         ms_index = [np.arange(0, len(sample), 1) for sample in x]        
@@ -79,17 +80,13 @@ class MSIterativeAlgorithm():
             x_md = self.md_calculation_op(x)    
             ms = np.concatenate([sample[ms_index[ind]] for ind, sample in enumerate(x_md)])
             
-            # MS to normal distribution
-            self.ms_log_mean = np.mean(np.log(ms))
-            self.ms_log_std = np.std(np.log(ms))
-            
-            # Statistical threshold 
-            self.log_threshold = self.sigma*self.ms_log_std
-            self.threshold = np.exp(self.log_threshold*self.ms_log_std + self.ms_log_mean)
+            # Statistical threshold for log-normal distribution
+            self.log_threshold = np.mean(np.log(ms)) + self.sigma*np.std(np.log(ms))
+            self.threshold = np.exp(self.log_threshold)
             
             # Degradation start detection
             for ind, md_sample in enumerate(x_md):
-                deg_start = self.detector.detect(self.log_normalize(md_sample), self.log_threshold)
+                deg_start = self.detector.detect(np.log(md_sample), self.log_threshold)
                 ms_index[ind] = np.arange(0, deg_start, 1)              
                 
             # Algorithm convergence check
@@ -105,16 +102,17 @@ class MSIterativeAlgorithm():
         # Distribution plots
         if plot_dist_change:
             plt.figure()    
-            lim = 1.1*np.max([np.max(np.abs(self.log_normalize(ms))), 
-                              np.max(np.abs(self.log_normalize(ms_original)))])
-            plt.hist(self.log_normalize(ms_original),
-                      bins=np.linspace(-lim,lim,500), color='C0', alpha=0.3, density=True, label='Initial distribution')
-            plt.hist(self.log_normalize(np.concatenate([sample[ms_index[ind]] for ind, sample in enumerate(x_md)])),
-                      bins=np.linspace(-lim,lim,500), color='C2', alpha=0.3, density=True, label='MS')
-            plt.hist(self.log_normalize(np.concatenate([sample[ms_index[ind][-1]:] for ind, sample in enumerate(x_md)])), 
-                      bins=np.linspace(-lim,lim,500), color='r', alpha=0.3, density=True, label='MS outsiders')
+            lim = 1.1*np.max([np.max(np.abs(ms)), 
+                              np.max(np.abs(ms_original))])
+            plt.hist(ms_original,
+                      bins=np.linspace(0,lim,500), color='C0', alpha=0.3, density=False, label='Initial distribution')
+            plt.hist(np.concatenate([sample[ms_index[ind]] for ind, sample in enumerate(x_md)]),
+                      bins=np.linspace(0,lim,500), color='C2', alpha=0.3, density=False, label='MS')
+            plt.hist(np.concatenate([sample[ms_index[ind][-1]:] for ind, sample in enumerate(x_md)]), 
+                      bins=np.linspace(0,lim,500), color='r', alpha=0.3, density=False, label='MS outsiders')
+            plt.axvline(self.threshold, label='Threshold', color='k')
             plt.legend()
-            plt.savefig(os.path.join('plots', 'MS_dist_change'), bbox_inches='tight', pad_inches=0)
+            plt.savefig(os.path.join('plots', plot_name), bbox_inches='tight', pad_inches=0)
         
         # Output prints
         print('\tCovergence at iter: {}'.format(len(self.iter_ms_dim)))                     
@@ -123,20 +121,16 @@ class MSIterativeAlgorithm():
         
         # All samples cross threshold check
         for ind, md_sample in enumerate(x_md):
-            self.detector.detect(self.log_normalize(md_sample), self.log_threshold, verbose=True)    
+            self.detector.detect(np.log(md_sample), self.log_threshold, verbose=True)    
         return None
-    
-    
-    def log_normalize(self, x):
-        return (np.log(x)-self.ms_log_mean)/self.ms_log_std
-    
+
     
     def md_calculation_op(self, x): 
         return np.asarray([self.m_d.fit(sample) for sample in x])
     
     
     def detect_degradation_start_index_from_MD(self, x, verbose):
-        return [self.detector.detect(self.log_normalize(x_sample), self.log_threshold, verbose=verbose) 
+        return [self.detector.detect(np.log(x_sample), self.log_threshold, verbose=verbose) 
                 for x_sample in x]
     
     
