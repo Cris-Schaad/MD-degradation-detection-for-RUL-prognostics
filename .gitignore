@@ -133,7 +133,9 @@ dmypy.json
 
 
 # Results
+C-MAPSS/plots
 C-MAPSS/training_results
+FEMTO/plots
 FEMTO/training_results
 
 
