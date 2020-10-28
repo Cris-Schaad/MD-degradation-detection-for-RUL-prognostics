@@ -1,3 +1,3 @@
 # Mahalanobis distance based degradation detection algorithm for RUL prognosis
 
-Approach for quantiafying degradation on systems through Mahalanobis distance (MD), and deradation detection based on it's temporal evolution.
+Mahalanobis distance (MD) approach for quantiafying degradation on physical assets base on sensory data. It defines a threshold after which Remaining Useful Life (RUL) prognostics can be performed-
